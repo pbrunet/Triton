@@ -59,6 +59,9 @@ namespace triton {
         //! This value is set to true if the tree contains a symbolic variable.
         bool symbolized;
 
+        //! Number of references used by the garbage collector. When this field is zero, the node is freed.
+        triton::usize garbageRef;
+
       public:
         //! Constructor.
         AbstractNode(enum kind_e kind);
@@ -118,6 +121,12 @@ namespace triton {
 
         //! Sets a child at an index.
         void setChild(triton::uint32 index, AbstractNode* child);
+
+        //! Increments the reference related to the garbage collector.
+        void incRef(void);
+
+        //! Decrements the reference related to the garbage collector.
+        void decRef(void);
 
         //! Init stuffs like size and eval.
         virtual void init(void) = 0;

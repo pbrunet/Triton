@@ -210,6 +210,7 @@ namespace triton {
 
 
       /* Adds an aligned memory */
+      /* TODO: inc ref */
       void SymbolicEngine::addAlignedMemory(triton::uint64 address, triton::uint32 size, triton::ast::AbstractNode* node) {
         this->removeAlignedMemory(address, size);
         this->alignedMemoryReference[std::make_pair(address, size)] = node;
@@ -217,6 +218,7 @@ namespace triton {
 
 
       /* Removes an aligned memory */
+      /* TODO: dec ref */
       void SymbolicEngine::removeAlignedMemory(triton::uint64 address, triton::uint32 size) {
         /* Remove overloaded positive ranges */
         for (triton::uint32 index = 0; index < size; index++) {
@@ -341,12 +343,20 @@ namespace triton {
 
       /* Creates a new symbolic expression with comment */
       SymbolicExpression* SymbolicEngine::newSymbolicExpression(triton::ast::AbstractNode* node, triton::engines::symbolic::symkind_e kind, const std::string& comment) {
+        /* Get an unique ID for a new symbolic expression */
         triton::usize id = this->getUniqueSymExprId();
+
+        /* Perform node simplification */
         node = this->processSimplification(node);
+
+        /* Allocate the symbolic expression */
         SymbolicExpression* expr = new SymbolicExpression(node, id, kind, comment);
         if (expr == nullptr)
           throw triton::exceptions::SymbolicEngine("SymbolicEngine::newSymbolicExpression(): not enough memory");
+
+        /* Mapping: <id : expression> */
         this->symbolicExpressions[id] = expr;
+
         return expr;
       }
 
@@ -844,6 +854,12 @@ namespace triton {
 
       /* Adds and assign a new memory reference */
       void SymbolicEngine::addMemoryReference(triton::uint64 mem, triton::usize id) {
+        triton::usize lastId = this->getSymbolicMemoryId(mem);
+
+        /* Decrement the last reference (which will be overwritten) */
+        if (lastId != triton::engines::symbolic::UNSET)
+          triton::api.getAstFromId(lastId)->decRef();
+
         this->memoryReference[mem] = id;
       }
 
@@ -853,6 +869,7 @@ namespace triton {
         triton::ast::AbstractNode* node = se->getAst();
         triton::arch::Register parent   = reg.getParent();
         triton::uint32 id               = parent.getId();
+        triton::usize lastId            = this->getSymbolicRegisterId(reg);
 
         /* We can assign an expression only on parent registers */
         if (reg.getId() != parent.getId())
@@ -862,8 +879,15 @@ namespace triton {
         if (node->getBitvectorSize() != reg.getBitSize())
           throw triton::exceptions::SymbolicEngine("SymbolicEngine::assignSymbolicExpressionToRegister(): The size of the symbolic expression is not equal to the target register.");
 
+        /* Set the kind and origin */
         se->setKind(triton::engines::symbolic::REG);
         se->setOriginRegister(reg);
+
+        /* Decrement the last reference (which will be overwritten) */
+        if (lastId != triton::engines::symbolic::UNSET)
+          triton::api.getAstFromId(lastId)->decRef();
+
+        /* Assignment */
         this->symbolicReg[id] = se->getId();
 
         /* Synchronize the concrete state */
