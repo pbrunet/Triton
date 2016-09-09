@@ -22,6 +22,7 @@ namespace triton {
 
     AbstractNode::AbstractNode(enum kind_e kind) {
       this->eval        = 0;
+      this->garbageRef  = 1;
       this->kind        = kind;
       this->size        = 0;
       this->symbolized  = false;
@@ -31,6 +32,7 @@ namespace triton {
     AbstractNode::AbstractNode() {
       this->eval        = 0;
       this->kind        = UNDEFINED_NODE;
+      this->garbageRef  = 1;
       this->size        = 0;
       this->symbolized  = false;
     }
@@ -38,13 +40,14 @@ namespace triton {
 
     AbstractNode::AbstractNode(const AbstractNode& copy) {
       this->eval        = copy.eval;
+      this->garbageRef  = 1;
       this->kind        = copy.kind;
       this->parents     = copy.parents;
       this->size        = copy.size;
       this->symbolized  = copy.symbolized;
 
       for (triton::uint32 index = 0; index < copy.childs.size(); index++)
-        this->childs.push_back(triton::ast::newInstance(copy.childs[index]));
+        this->addChild(triton::ast::newInstance(copy.childs[index]));
     }
 
 
@@ -98,18 +101,24 @@ namespace triton {
 
 
     void AbstractNode::setParent(AbstractNode* p) {
-      this->parents.insert(p);
+      if (this->parents.find(p) == this->parents.end()) {
+        this->parents.insert(p);
+        this->incRef();
+      }
     }
 
 
     void AbstractNode::removeParent(AbstractNode* p) {
-      this->parents.erase(p);
+      if (this->parents.find(p) != this->parents.end()) {
+        this->parents.erase(p);
+        this->decRef();
+      }
     }
 
 
     void AbstractNode::setParent(std::set<AbstractNode*>& p) {
       for (std::set<AbstractNode*>::iterator it = p.begin(); it != p.end(); it++)
-        this->parents.insert(*it);
+        this->setParent(*it);
     }
 
 
@@ -138,6 +147,22 @@ namespace triton {
 
     void AbstractNode::setBitvectorSize(triton::uint32 size) {
       this->size = size;
+    }
+
+
+    void AbstractNode::incRef(void) {
+      this->garbageRef += 1;
+      if (this->garbageRef == 0)
+        throw triton::exceptions::Ast("AbstractNode::incRef(): So much node allocated.");
+    }
+
+
+    void AbstractNode::decRef(void) {
+      if (this->garbageRef)
+        this->garbageRef -= 1;
+
+      //if (this->garbageRef == 0)
+      //  std::cout << "[TODO - must be freed]: " << this << std::endl;
     }
 
 
