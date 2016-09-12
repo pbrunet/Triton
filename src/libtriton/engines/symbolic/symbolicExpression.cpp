@@ -97,6 +97,7 @@ namespace triton {
 
       void SymbolicExpression::setAst(triton::ast::AbstractNode* node) {
         node->setParent(this->ast->getParents());
+        this->ast->decRef();
         this->ast = node;
         this->ast->init();
       }

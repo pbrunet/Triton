@@ -148,16 +148,31 @@ namespace triton {
        */
       void SymbolicEngine::concretizeRegister(const triton::arch::Register& reg) {
         triton::uint32 parentId = reg.getParent().getId();
+
         if (!triton::api.isCpuRegisterValid(parentId))
           return;
+
+        /* Decrement the AST reference */
+        if (this->symbolicReg[parentId] != triton::engines::symbolic::UNSET)
+          triton::api.getAstFromId(this->symbolicReg[parentId])->decRef();
+
+        /* Concretizing */
         this->symbolicReg[parentId] = triton::engines::symbolic::UNSET;
       }
 
 
       /* Same as concretizeRegister but with all registers */
       void SymbolicEngine::concretizeAllRegister(void) {
-        for (triton::uint32 i = 0; i < this->numberOfRegisters; i++)
+        for (triton::uint32 i = 0; i < this->numberOfRegisters; i++) {
+
+          /* Decrement the AST reference */
+          if (this->symbolicReg[i] != triton::engines::symbolic::UNSET) {
+            triton::api.getAstFromId(this->symbolicReg[i])->decRef();
+          }
+
+          /* Concretizing */
           this->symbolicReg[i] = triton::engines::symbolic::UNSET;
+        }
       }
 
 
@@ -169,6 +184,7 @@ namespace triton {
       void SymbolicEngine::concretizeMemory(const triton::arch::MemoryAccess& mem) {
         triton::uint64 addr = mem.getAddress();
         triton::uint32 size = mem.getSize();
+
         for (triton::uint32 index = 0; index < size; index++)
           this->concretizeMemory(addr+index);
       }
@@ -180,7 +196,16 @@ namespace triton {
        * before symbolic processing.
        */
       void SymbolicEngine::concretizeMemory(triton::uint64 addr) {
+        triton::usize symId = this->getSymbolicMemoryId(addr);
+
+        /* Decrement AST reference */
+        if (symId != triton::engines::symbolic::UNSET)
+          triton::api.getAstFromId(symId)->decRef();
+
+        /* Concretizing */
         this->memoryReference.erase(addr);
+
+        /* Remove overlapped aligned memory */
         if (triton::api.isSymbolicOptimizationEnabled(triton::engines::symbolic::ALIGNED_MEMORY))
           this->removeAlignedMemory(addr, BYTE_SIZE);
       }
@@ -190,6 +215,7 @@ namespace triton {
       void SymbolicEngine::concretizeAllMemory(void) {
         this->memoryReference.clear();
         this->alignedMemoryReference.clear();
+        /* TODO dec ref */
       }
 
 
@@ -366,6 +392,9 @@ namespace triton {
         std::map<triton::uint64, triton::usize>::iterator it;
 
         if (this->symbolicExpressions.find(symExprId) != this->symbolicExpressions.end()) {
+          /* Decrement the AST reference */
+          this->symbolicExpressions[symExprId]->getAst()->decRef();
+
           /* Delete and remove the pointer */
           delete this->symbolicExpressions[symExprId];
           this->symbolicExpressions.erase(symExprId);
