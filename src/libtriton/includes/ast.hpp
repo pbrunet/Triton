@@ -125,8 +125,8 @@ namespace triton {
         //! Increments the reference related to the garbage collector.
         void incRef(void);
 
-        //! Decrements the reference related to the garbage collector.
-        void decRef(void);
+        //! Decrements the reference related to the garbage collector. Returns true if the node has been deleted.
+        bool decRef(void);
 
         //! Init stuffs like size and eval.
         virtual void init(void) = 0;

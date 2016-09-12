@@ -157,12 +157,20 @@ namespace triton {
     }
 
 
-    void AbstractNode::decRef(void) {
+    bool AbstractNode::decRef(void) {
+      std::set<triton::ast::AbstractNode*> uniqueNodes;
+
       if (this->garbageRef)
         this->garbageRef -= 1;
 
-      //if (this->garbageRef == 0)
-      //  std::cout << "[TODO - must be freed]: " << this << std::endl;
+      if (this->garbageRef == 0) {
+        std::cout << "[TODO - must be freed]: " << this << std::endl;
+        //triton::api.extractUniqueAstNodes(uniqueNodes, this);
+        //triton::api.freeAstNodes(uniqueNodes);
+        return true;
+      }
+
+      return false;
     }
 
 
@@ -2801,6 +2809,13 @@ namespace triton {
 
 
     ReferenceNode::~ReferenceNode() {
+      /*
+       * In the case of a reference node, if we delete this node
+       * we must decrement the reference of its parent.
+       */
+      if (triton::api.isSymbolicExpressionIdExists(this->value)) {
+        triton::api.getAstFromId(this->value)->decRef();
+      }
     }
 
 
