@@ -122,6 +122,9 @@ namespace triton {
         //! Sets a child at an index.
         void setChild(triton::uint32 index, AbstractNode* child);
 
+        //! Returns the number of references related to the garbage collector.
+        triton::usize getRef(void) const;
+
         //! Increments the reference related to the garbage collector.
         void incRef(void);
 

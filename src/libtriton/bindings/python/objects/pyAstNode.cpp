@@ -91,6 +91,7 @@ namespace triton {
       void AstNode_dealloc(PyObject* self) {
         std::cout << std::flush;
         Py_DECREF(self);
+        PyAstNode_AsAstNode(self)->decRef();
       }
 
 
@@ -571,8 +572,10 @@ namespace triton {
 
         PyType_Ready(&AstNode_Type);
         object = PyObject_NEW(AstNode_Object, &AstNode_Type);
-        if (object != NULL)
+        if (object != NULL) {
           object->node = node;
+          node->incRef();
+        }
 
         return (PyObject*)object;
       }

@@ -41,6 +41,12 @@ namespace triton {
         return;
 
       for (it = nodes.begin(); it != nodes.end(); it++) {
+        /* Don't remove node if it has still references */
+        if ((*it)->getRef())
+          continue;
+
+        std::cout << "[Freed]: " << *it << std::endl;
+
         /* Remove the node from the global set */
         this->allocatedNodes.erase(*it);
 
