@@ -22,6 +22,7 @@ namespace triton {
 
     AbstractNode::AbstractNode(enum kind_e kind) {
       this->eval        = 0;
+      this->garbageRef  = 0;
       this->kind        = kind;
       this->size        = 0;
       this->symbolized  = false;
@@ -30,6 +31,7 @@ namespace triton {
 
     AbstractNode::AbstractNode() {
       this->eval        = 0;
+      this->garbageRef  = 0;
       this->kind        = UNDEFINED_NODE;
       this->size        = 0;
       this->symbolized  = false;
@@ -38,13 +40,17 @@ namespace triton {
 
     AbstractNode::AbstractNode(const AbstractNode& copy) {
       this->eval        = copy.eval;
+      this->garbageRef  = 0;
       this->kind        = copy.kind;
       this->parents     = copy.parents;
       this->size        = copy.size;
       this->symbolized  = copy.symbolized;
 
-      for (triton::uint32 index = 0; index < copy.childs.size(); index++)
-        this->childs.push_back(triton::ast::newInstance(copy.childs[index]));
+      for (triton::uint32 index = 0; index < copy.childs.size(); index++) {
+        AbstractNode* node = triton::ast::newInstance(copy.childs[index]);
+        TT_INCREF(node);
+        this->childs.push_back(node);
+      }
     }
 
 
@@ -98,12 +104,18 @@ namespace triton {
 
 
     void AbstractNode::setParent(AbstractNode* p) {
-      this->parents.insert(p);
+      if (this->parents.find(p) == this->parents.end()) {
+        this->parents.insert(p);
+        this->incRef();
+      }
     }
 
 
     void AbstractNode::removeParent(AbstractNode* p) {
-      this->parents.erase(p);
+      if (this->parents.find(p) != this->parents.end()) {
+        this->parents.erase(p);
+        this->decRef();
+      }
     }
 
 
@@ -138,6 +150,32 @@ namespace triton {
 
     void AbstractNode::setBitvectorSize(triton::uint32 size) {
       this->size = size;
+    }
+
+
+    triton::usize AbstractNode::getRef(void) const {
+      return this->garbageRef;
+    }
+
+
+    void AbstractNode::incRef(void) {
+      this->garbageRef += 1;
+      if (this->garbageRef == 0)
+        throw triton::exceptions::Ast("AbstractNode::incRef(): So much node allocated.");
+    }
+
+
+    bool AbstractNode::decRef(void) {
+      if (this->garbageRef)
+        this->garbageRef -= 1;
+
+      if (this->garbageRef == 0) {
+        //std::cout << "[must be freed]: " << this << std::endl;
+        triton::api.freeAstNode(this);
+        return true;
+      }
+
+      return false;
     }
 
 
@@ -3565,6 +3603,10 @@ namespace triton {
 
     AbstractNode* newInstance(AbstractNode* node) {
       AbstractNode* newNode = nullptr;
+
+      if (node == nullptr)
+        return nullptr;
+
       switch (node->getKind()) {
         case ASSERT_NODE:               newNode = new AssertNode(*reinterpret_cast<AssertNode*>(node)); break;
         case BVADD_NODE:                newNode = new BvaddNode(*reinterpret_cast<BvaddNode*>(node)); break;
@@ -3618,8 +3660,10 @@ namespace triton {
         default:
           throw triton::exceptions::Ast("triton::ast::newInstance(): Invalid kind node.");
       }
+
       if (newNode == nullptr)
         throw triton::exceptions::Ast("triton::ast::newInstance(): No enough memory.");
+
       return newNode;
     }
 

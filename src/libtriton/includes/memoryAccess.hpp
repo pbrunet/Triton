@@ -106,7 +106,7 @@ namespace triton {
         //! Initialize the address of the memory.
         void initAddress(void);
 
-        //! Returns the AST of the memory access (LEA).
+        //! LEA - Returns the AST of the memory access.
         triton::ast::AbstractNode* getLeaAst(void) const;
 
         //! Returns the address of the memory.
@@ -189,6 +189,9 @@ namespace triton {
 
         //! LEA - Sets the scale operand.
         void setScale(triton::arch::Immediate& scale);
+
+        //! LEA - Removes AST nodes related to the load effective address.
+        void freeLeaAst(void);
 
         //! Copies a MemoryAccess.
         void operator=(const MemoryAccess& other);

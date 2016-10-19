@@ -215,11 +215,14 @@ namespace triton {
         //! [**AST garbage collector api**] - Raises an exception if the AST garbage collector interface is not initialized.
         void checkAstGarbageCollector(void) const;
 
-        //! [**AST garbage collector api**] - Go through every allocated nodes and free them.
-        void freeAllAstNodes(void);
+        //! [**AST garbage collector api**] - Frees a node and removes it from the global container.
+        void freeAstNode(triton::ast::AbstractNode* node);
 
         //! [**AST garbage collector api**] - Frees a set of nodes and removes them from the global container.
         void freeAstNodes(std::set<triton::ast::AbstractNode*>& nodes);
+
+        //! [**AST garbage collector api**] - Go through every allocated nodes and free them.
+        void freeAllAstNodes(void);
 
         //! [**AST garbage collector api**] - Extracts all unique nodes from a partial AST into the uniqueNodes set.
         void extractUniqueAstNodes(std::set<triton::ast::AbstractNode*>& uniqueNodes, triton::ast::AbstractNode* root) const;

@@ -411,12 +411,13 @@ namespace triton {
 
   void API::removeEngines(void) {
     if (this->isArchitectureValid()) {
-      delete this->astGarbageCollector;
-      delete this->astRepresentation;
+      /* Keep this order */
       delete this->solver;
+      delete this->taint;
       delete this->symbolic;
       delete this->symbolicBackup;
-      delete this->taint;
+      delete this->astGarbageCollector;
+      delete this->astRepresentation;
 
       this->astGarbageCollector = nullptr;
       this->astRepresentation   = nullptr;
@@ -453,15 +454,21 @@ namespace triton {
   }
 
 
-  void API::freeAllAstNodes(void) {
+  void API::freeAstNode(triton::ast::AbstractNode* node) {
     this->checkAstGarbageCollector();
-    this->astGarbageCollector->freeAllAstNodes();
+    this->astGarbageCollector->freeAstNode(node);
   }
 
 
   void API::freeAstNodes(std::set<triton::ast::AbstractNode*>& nodes) {
     this->checkAstGarbageCollector();
     this->astGarbageCollector->freeAstNodes(nodes);
+  }
+
+
+  void API::freeAllAstNodes(void) {
+    this->checkAstGarbageCollector();
+    this->astGarbageCollector->freeAllAstNodes();
   }
 
 

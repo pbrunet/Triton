@@ -22,14 +22,29 @@ namespace triton {
     }
 
 
-    void AstGarbageCollector::freeAllAstNodes(void) {
-      std::set<triton::ast::AbstractNode*>::iterator it;
+    void AstGarbageCollector::freeAstNode(triton::ast::AbstractNode* node) {
+      std::vector<triton::ast::AbstractNode*>::const_iterator it;
 
-      for (it = this->allocatedNodes.begin(); it != this->allocatedNodes.end(); it++)
-        delete *it;
+      /* Don't delete node if there are still references */
+      if (node->getRef())
+        return;
 
-      this->variableNodes.clear();
-      this->allocatedNodes.clear();
+      /* Do not delete AST nodes if the AST_DICTIONARIES optimization is enabled */
+      if (triton::api.isSymbolicOptimizationEnabled(triton::engines::symbolic::AST_DICTIONARIES))
+        return;
+
+      /* Remove the node from the global set */
+      this->allocatedNodes.erase(node);
+
+      /* Remove the node from the global variables map */
+      if (node->getKind() == triton::ast::VARIABLE_NODE)
+        this->variableNodes.erase(reinterpret_cast<triton::ast::VariableNode*>(node)->getValue());
+
+      for (it = node->getChilds().begin(); it != node->getChilds().end(); it++)
+        (*it)->removeParent(node);
+
+      /* Delete the node */
+      delete node;
     }
 
 
@@ -40,19 +55,21 @@ namespace triton {
       if (triton::api.isSymbolicOptimizationEnabled(triton::engines::symbolic::AST_DICTIONARIES))
         return;
 
-      for (it = nodes.begin(); it != nodes.end(); it++) {
-        /* Remove the node from the global set */
-        this->allocatedNodes.erase(*it);
-
-        /* Remove the node from the global variables map */
-        if ((*it)->getKind() == triton::ast::VARIABLE_NODE)
-          this->variableNodes.erase(reinterpret_cast<triton::ast::VariableNode*>(*it)->getValue());
-
-        /* Delete the node */
-        delete *it;
-      }
+      for (it = nodes.begin(); it != nodes.end(); it++)
+        this->freeAstNode(*it);
 
       nodes.clear();
+    }
+
+
+    void AstGarbageCollector::freeAllAstNodes(void) {
+      std::set<triton::ast::AbstractNode*>::iterator it;
+
+      for (it = this->allocatedNodes.begin(); it != this->allocatedNodes.end(); it++)
+        delete(*it);
+
+      this->variableNodes.clear();
+      this->allocatedNodes.clear();
     }
 
 
@@ -104,8 +121,9 @@ namespace triton {
     void AstGarbageCollector::setAllocatedAstNodes(const std::set<triton::ast::AbstractNode*>& nodes) {
       /* Remove unused nodes before the assignation */
       for (std::set<triton::ast::AbstractNode*>::iterator it = this->allocatedNodes.begin(); it != this->allocatedNodes.end(); it++) {
-        if (nodes.find(*it) == nodes.end())
-          delete *it;
+        triton::ast::AbstractNode* node = *it;
+        if (nodes.find(node) == nodes.end())
+          TT_DECREF(node);
       }
       this->allocatedNodes = nodes;
     }

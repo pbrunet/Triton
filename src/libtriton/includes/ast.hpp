@@ -21,6 +21,17 @@
 #include "symbolicVariable.hpp"
 #include "tritonTypes.hpp"
 
+#define TT_DECREF(x) {  \
+  if (x)                \
+    x->decRef();        \
+  x = nullptr;          \
+}
+
+#define TT_INCREF(x) {  \
+  if (x)                \
+    x->incRef();        \
+}
+
 
 
 //! The Triton namespace
@@ -58,6 +69,9 @@ namespace triton {
 
         //! This value is set to true if the tree contains a symbolic variable.
         bool symbolized;
+
+        //! Number of references used by the garbage collector. When this field is zero, the node is freed.
+        triton::usize garbageRef;
 
       public:
         //! Constructor.
@@ -118,6 +132,15 @@ namespace triton {
 
         //! Sets a child at an index.
         void setChild(triton::uint32 index, AbstractNode* child);
+
+        //! Returns the number of references related to the garbage collector.
+        triton::usize getRef(void) const;
+
+        //! Increments the reference related to the garbage collector.
+        void incRef(void);
+
+        //! Decrements the reference related to the garbage collector. Returns true if the node has been deleted.
+        bool decRef(void);
 
         //! Init stuffs like size and eval.
         virtual void init(void) = 0;

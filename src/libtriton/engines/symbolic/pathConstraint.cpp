@@ -30,6 +30,8 @@ namespace triton {
       void PathConstraint::addBranchConstraint(bool taken, triton::uint64 srcAddr, triton::uint64 dstAddr, triton::ast::AbstractNode* pc) {
         if (pc == nullptr)
           throw triton::exceptions::PathConstraint("PathConstraint::addBranchConstraint(): The PC node cannot be null.");
+
+        TT_INCREF(pc);
         this->branches.push_back(std::make_tuple(taken, srcAddr, dstAddr, pc));
       }
 

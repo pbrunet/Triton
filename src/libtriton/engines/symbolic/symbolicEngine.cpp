@@ -431,6 +431,8 @@ namespace triton {
           if (childs[index]->getKind() == triton::ast::REFERENCE_NODE) {
             triton::usize id = reinterpret_cast<triton::ast::ReferenceNode*>(childs[index])->getValue();
             triton::ast::AbstractNode* ref = this->getSymbolicExpressionFromId(id)->getAst();
+            TT_INCREF(ref);
+            TT_DECREF(childs[index]);
             childs[index] = ref;
             if (processed.find(id) != processed.end())
               continue;

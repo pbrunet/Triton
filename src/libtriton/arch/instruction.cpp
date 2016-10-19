@@ -173,26 +173,31 @@ namespace triton {
 
 
     void Instruction::setLoadAccess(const triton::arch::MemoryAccess& mem, triton::ast::AbstractNode* node) {
+      TT_INCREF(node);
       this->loadAccess.insert(std::make_pair(mem, node));
     }
 
 
     void Instruction::setStoreAccess(const triton::arch::MemoryAccess& mem, triton::ast::AbstractNode* node) {
+      TT_INCREF(node);
       this->storeAccess.insert(std::make_pair(mem, node));
     }
 
 
     void Instruction::setReadRegister(const triton::arch::Register& reg, triton::ast::AbstractNode* node) {
+      TT_INCREF(node);
       this->readRegisters.insert(std::make_pair(reg, node));
     }
 
 
     void Instruction::setWrittenRegister(const triton::arch::Register& reg, triton::ast::AbstractNode* node) {
+      TT_INCREF(node);
       this->writtenRegisters.insert(std::make_pair(reg, node));
     }
 
 
     void Instruction::setReadImmediate(const triton::arch::Immediate& imm, triton::ast::AbstractNode* node) {
+      TT_INCREF(node);
       this->readImmediates.insert(std::make_pair(imm, node));
     }
 
@@ -242,15 +247,11 @@ namespace triton {
 
 
     void Instruction::removeSymbolicExpressions(void) {
-      std::set<triton::ast::AbstractNode*> uniqueNodes;
       std::vector<triton::engines::symbolic::SymbolicExpression*>::iterator it;
 
-      for (it = this->symbolicExpressions.begin(); it != this->symbolicExpressions.end(); it++) {
-        triton::api.extractUniqueAstNodes(uniqueNodes, (*it)->getAst());
+      for (it = this->symbolicExpressions.begin(); it != this->symbolicExpressions.end(); it++)
         triton::api.removeSymbolicExpression((*it)->getId());
-      }
 
-      triton::api.freeAstNodes(uniqueNodes);
       this->symbolicExpressions.clear();
     }
 
@@ -332,7 +333,6 @@ namespace triton {
 
 
     void Instruction::postIRInit(void) {
-      std::set<triton::ast::AbstractNode*> uniqueNodes;
       std::vector<triton::engines::symbolic::SymbolicExpression*> newVector;
       std::vector<triton::engines::symbolic::SymbolicExpression*>::iterator it;
 
@@ -369,14 +369,11 @@ namespace triton {
        */
       if (triton::api.isSymbolicOptimizationEnabled(triton::engines::symbolic::ONLY_ON_SYMBOLIZED)) {
         for (it = this->symbolicExpressions.begin(); it != this->symbolicExpressions.end(); it++) {
-          if ((*it)->getAst()->isSymbolized() == false) {
-            triton::api.extractUniqueAstNodes(uniqueNodes, (*it)->getAst());
+          if ((*it)->getAst()->isSymbolized() == false)
             triton::api.removeSymbolicExpression((*it)->getId());
-          }
           else
             newVector.push_back(*it);
         }
-        triton::api.freeAstNodes(uniqueNodes);
         this->symbolicExpressions = newVector;
       }
     }

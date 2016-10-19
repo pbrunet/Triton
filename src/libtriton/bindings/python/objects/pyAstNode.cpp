@@ -90,6 +90,7 @@ namespace triton {
       //! AstNode destructor.
       void AstNode_dealloc(PyObject* self) {
         std::cout << std::flush;
+        TT_DECREF(PyAstNode_AsAstNode(self));
         Py_DECREF(self);
       }
 
@@ -571,8 +572,10 @@ namespace triton {
 
         PyType_Ready(&AstNode_Type);
         object = PyObject_NEW(AstNode_Object, &AstNode_Type);
-        if (object != NULL)
+        if (object != NULL) {
           object->node = node;
+          TT_INCREF(node);
+        }
 
         return (PyObject*)object;
       }

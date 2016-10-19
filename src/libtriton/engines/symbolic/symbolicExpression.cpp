@@ -22,10 +22,15 @@ namespace triton {
         this->id            = id;
         this->isTainted     = false;
         this->kind          = kind;
+
+        /* Increment the node's reference */
+        TT_INCREF(this->ast);
       }
 
 
       SymbolicExpression::~SymbolicExpression() {
+        /* Decrement the node's reference */
+        TT_DECREF(this->ast);
       }
 
 
@@ -97,7 +102,17 @@ namespace triton {
 
       void SymbolicExpression::setAst(triton::ast::AbstractNode* node) {
         node->setParent(this->ast->getParents());
+
+        /* Decrement the overwritten reference */
+        TT_DECREF(this->ast);
+
+        /* Increment the node's reference */
+        TT_INCREF(node);
+
+        /* overwrite */
         this->ast = node;
+
+        /* Initialize the new node */
         this->ast->init();
       }
 

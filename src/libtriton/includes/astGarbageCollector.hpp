@@ -50,11 +50,14 @@ namespace triton {
         //! Destructor.
         ~AstGarbageCollector();
 
-        //! Go through every allocated nodes and free them.
-        void freeAllAstNodes(void);
+        //! Frees a node and removes it from the global container.
+        void freeAstNode(triton::ast::AbstractNode* node);
 
         //! Frees a set of nodes and removes them from the global container.
         void freeAstNodes(std::set<triton::ast::AbstractNode*>& nodes);
+
+        //! Go through every allocated nodes and free them.
+        void freeAllAstNodes(void);
 
         //! Extracts all unique nodes from a partial AST into the uniqueNodes set.
         void extractUniqueAstNodes(std::set<triton::ast::AbstractNode*>& uniqueNodes, triton::ast::AbstractNode* root) const;

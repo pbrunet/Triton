@@ -43,11 +43,14 @@ namespace triton {
 
 
     MemoryAccess::MemoryAccess(const MemoryAccess& other) : BitsVector(other) {
+      /* ast must be initialized to null */
+      this->ast = nullptr;
       this->copy(other);
     }
 
 
     MemoryAccess::~MemoryAccess() {
+      this->freeLeaAst();
     }
 
 
@@ -155,6 +158,9 @@ namespace triton {
                         triton::ast::sx((this->segmentReg.getBitSize() - bitSize), this->ast)
                       );
         }
+
+        /* Increment the node's reference */
+        TT_INCREF(this->ast);
 
         /* Initialize the address only if it is not already defined */
         if (!this->address)
@@ -287,6 +293,11 @@ namespace triton {
     }
 
 
+    void MemoryAccess::freeLeaAst(void) {
+      TT_DECREF(this->ast);
+    }
+
+
     void MemoryAccess::operator=(const MemoryAccess &other) {
       BitsVector::operator=(other);
       this->copy(other);
@@ -295,7 +306,6 @@ namespace triton {
 
     void MemoryAccess::copy(const MemoryAccess& other) {
       this->address       = other.address;
-      this->ast           = other.ast;
       this->baseReg       = other.baseReg;
       this->concreteValue = other.concreteValue;
       this->displacement  = other.displacement;
@@ -303,6 +313,15 @@ namespace triton {
       this->pcRelative    = other.pcRelative;
       this->scale         = other.scale;
       this->segmentReg    = other.segmentReg;
+
+      /* Decrement the overwritten reference */
+      TT_DECREF(this->ast);
+
+      /* Increment the node's reference */
+      TT_INCREF(other.ast);
+
+      /* overwrite */
+      this->ast = other.ast;
     }
 
 
