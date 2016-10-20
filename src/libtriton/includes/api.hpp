@@ -57,7 +57,7 @@ namespace triton {
         triton::engines::solver::SolverEngine* solver;
 
         //! The AST garbage collector interface.
-        triton::ast::AstGarbageCollector* astGarbageCollector;
+        triton::ast::AstGarbageCollector astGarbageCollector;
 
         //! The AST representation interface.
         triton::ast::representations::AstRepresentation* astRepresentation;
@@ -211,9 +211,6 @@ namespace triton {
 
 
         /* AST Garbage Collector API ===================================================================== */
-
-        //! [**AST garbage collector api**] - Raises an exception if the AST garbage collector interface is not initialized.
-        void checkAstGarbageCollector(void) const;
 
         //! [**AST garbage collector api**] - Frees a node and removes it from the global container.
         void freeAstNode(triton::ast::AbstractNode* node);

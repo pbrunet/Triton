@@ -38,6 +38,30 @@ namespace triton {
 
 
     Instruction::~Instruction() {
+      for (auto it = this->loadAccess.begin(); it != this->loadAccess.end(); it++) {
+        triton::ast::AbstractNode* node = it->second;
+        TT_DECREF(node);
+      }
+
+      for (auto it = this->storeAccess.begin(); it != this->storeAccess.end(); it++) {
+        triton::ast::AbstractNode* node = it->second;
+        TT_DECREF(node);
+      }
+
+      for (auto it = this->readRegisters.begin(); it != this->readRegisters.end(); it++) {
+        triton::ast::AbstractNode* node = it->second;
+        TT_DECREF(node);
+      }
+
+      for (auto it = this->writtenRegisters.begin(); it != this->writtenRegisters.end(); it++) {
+        triton::ast::AbstractNode* node = it->second;
+        TT_DECREF(node);
+      }
+
+      for (auto it = this->readImmediates.begin(); it != this->readImmediates.end(); it++) {
+        triton::ast::AbstractNode* node = it->second;
+        TT_DECREF(node);
+      }
     }
 
 
