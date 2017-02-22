@@ -94,12 +94,8 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get update -q; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install -y --force-yes libz3-dev; fi
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo apt-get install python-setuptools; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" = "gcc" ]; then export CC="$C_COMPILER"; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CXX" = "g++" ]; then export CXX="$CXX_COMPILER"; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CC" = "clang" ]; then export CC="$C_COMPILER"; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ] && [ "$CXX" = "clang++" ]; then export CXX="$CXX_COMPILER"; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export CC="clang"; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export CXX="clang++"; fi
+  - export CC="$C_COMPILER"
+  - export CXX="$CXX_COMPILER"
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then export PREFIX="/usr/local"; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install $TT_DEP_BREW_PKGS; fi
@@ -109,12 +105,8 @@ before_install:
   - git clone https://github.com/aquynh/capstone.git
   - cd capstone
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then bash ./make.sh; fi
-  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo make install; fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./make.sh; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sudo PREFIX=/usr/local make install; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cd ./bindings/python; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sudo python2.7 ./setup.py install; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then cd ../../; fi
+  - sudo make install
   - cd ../
   # Download pin
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then wget http://software.intel.com/sites/landingpage/pintool/downloads/pin-2.14-71313-gcc.4.4.7-linux.tar.gz; fi
