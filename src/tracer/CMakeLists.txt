@@ -2,9 +2,15 @@
 
 set(PROJECT_PINTOOL "pintool")
 add_definitions(-DTRITON_PINTOOL)
+if(PYTHON_BINDINGS)
+    add_definitions(-DTRITON_PYTHON_BINDINGS)
+endif()
 
 # Root directory of the Pin toolkit
-set(PIN_ROOT "${CMAKE_SOURCE_DIR}/../../..")
+set(PIN_ROOT "${CMAKE_SOURCE_DIR}/../../.." CACHE PATH "Path to pin root directory")
+
+# Add Triton includes
+include_directories("${CMAKE_SOURCE_DIR}/src/libtriton/includes")
 
 
 # Specific Linux CXX Flags
@@ -129,7 +135,7 @@ endif()
 
 # Generate the triton's shortcut script
 set(PIN_BIN_PATH ${PIN_ROOT}/pin.sh)
-set(PINTOOL_PATH ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_PINTOOL}${CMAKE_SHARED_LIBRARY_SUFFIX})
+set(PINTOOL_PATH ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}${PROJECT_PINTOOL}${CMAKE_SHARED_LIBRARY_SUFFIX})
 set(FLAG_IFEELLUCKY "")
 
 

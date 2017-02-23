@@ -16,6 +16,28 @@ option(PYTHON_BINDINGS "Enable Python bindings into the libtriton" ON)
 option(STATICLIB "Build a static library" OFF)
 option(INCBUILD "Increment the build number" OFF)
 
+#Enable ctest
+include(CTest)
+add_custom_target(test-python python -m unittest discover ${CMAKE_SOURCE_DIR}/src/testers/unittests)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+  # Special handling of Linux test to check if pin can be attached on other binaries.
+  add_custom_target(check COMMAND ${CMAKE_SOURCE_DIR}/src/scripts/run_linux_test.sh)
+else()
+  add_custom_target(check ctest DEPENDS test-python)
+endif()
+
+
+set(CMAKE_BUILD_TYPE Release)
+
+# Specific OSX POLICY
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    if(POLICY CMP0025)
+        cmake_policy(SET CMP0025 OLD) # report Apple's Clang as just Clang
+    endif()
+    if(POLICY CMP0042)
+        cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH
+    endif()
+endif()
 
 # Get architecture
 if(CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -49,31 +71,8 @@ if(INCBUILD)
     file(WRITE ${CMAKE_SOURCE_DIR}/Doxyfile ${PROJECT_NUMBER})
 endif()
 
-
 # Custom cmake search
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/CMakeModules/")
-
-
-
-# Triton project
-set(CMAKE_BUILD_TYPE Release)
-
-
-# Specific OSX POLICY
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    if(POLICY CMP0025)
-        cmake_policy(SET CMP0025 OLD) # report Apple's Clang as just Clang
-    endif()
-    if(POLICY CMP0042)
-        cmake_policy(SET CMP0042 NEW) # MACOSX_RPATH
-    endif()
-endif()
-
-
-# Find boost
-find_package(Boost 1.55.0 REQUIRED)
-include_directories("${Boost_INCLUDE_DIRS}")
-
 
 # Find Python 2.7
 if(PYTHON_BINDINGS)
@@ -91,40 +90,10 @@ if(PYTHON_BINDINGS)
   include_directories(${PYTHON_INCLUDE_DIRS})
 endif()
 
-
-# Find Z3
-if(NOT Z3_INCLUDE_DIRS)
-  set(Z3_INCLUDE_DIRS "$ENV{Z3_INCLUDE_DIRS}")
+# Use the same ABI as pin
+if(PINTOOL)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
 endif()
-if(NOT STATICLIB) # Only if building dynamic library
-  if(NOT Z3_LIBRARIES)
-    set(Z3_LIBRARIES "$ENV{Z3_LIBRARIES}")
-  endif()
-  if(NOT Z3_INCLUDE_DIRS AND NOT Z3_LIBRARIES)
-      find_package(Z3 REQUIRED)
-      if(NOT Z3_FOUND)
-          message(FATAL_ERROR "Z3 not found")
-      endif()
-  endif()
-endif()
-include_directories(${Z3_INCLUDE_DIRS})
 
-
-# Find Capstone
-if(NOT CAPSTONE_INCLUDE_DIRS)
-  set(CAPSTONE_INCLUDE_DIRS "$ENV{CAPSTONE_INCLUDE_DIRS}")
-endif()
-if(NOT STATICLIB) # Only if building dynamic library
-  if(NOT CAPSTONE_LIBRARIES)
-    set(CAPSTONE_LIBRARIES "$ENV{CAPSTONE_LIBRARIES}")
-  endif()
-  if(NOT CAPSTONE_INCLUDE_DIRS AND NOT CAPSTONE_LIBRARIES)
-      find_package(CAPSTONE REQUIRED)
-      if(NOT CAPSTONE_FOUND)
-          message(FATAL_ERROR "Capstone not found")
-      endif()
-  endif()
-endif()
-include_directories(${CAPSTONE_INCLUDE_DIRS})
-
+set(PROJECT_LIBTRITON "triton")
 add_subdirectory(src)

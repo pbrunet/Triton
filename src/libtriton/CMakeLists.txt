@@ -1,3 +1,5 @@
+option(GCOV "Enable code coverage" OFF)
+
 # Define if the library will be STATIC or DYNAMIC
 if(STATICLIB)
     set(LIBTRITON_KIND_LINK STATIC)
@@ -10,38 +12,33 @@ if(PYTHON_BINDINGS)
     add_definitions(-DTRITON_PYTHON_BINDINGS)
 endif()
 
-set(PROJECT_LIBTRITON "triton")
-
 
 # Default flags
 # To fix old python version bug http://bugs.python.org/issue21958
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-    set(LIBTRITON_CXX_FLAGS "-DHAVE_ROUND /MT")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHAVE_ROUND /MT")
 endif()
 
 
 # Global UNIX CXX Flags
 if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     # Flags
-    set(LIBTRITON_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FLAG_CXX}")
-    set(LIBTRITON_CXX_FLAGS "${LIBTRITON_CXX_FLAGS} -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unknown-pragmas -Wno-tautological-compare")
-    set(LIBTRITON_CXX_FLAGS "${LIBTRITON_CXX_FLAGS} -O3")
-    set(LIBTRITON_CXX_FLAGS "${LIBTRITON_CXX_FLAGS} -fno-stack-protector -fomit-frame-pointer -fno-strict-aliasing")
-    set(LIBTRITON_CXX_FLAGS "${LIBTRITON_CXX_FLAGS} -fPIC -std=c++11")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unknown-pragmas -Wno-tautological-compare")
+    if(GCOV)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 --coverage -g")
+    else()
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    endif()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-stack-protector -fomit-frame-pointer -fno-strict-aliasing")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++11")
 endif()
 
 
 # 32-bits
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     if(${ARCHITECTURE} STREQUAL "i386")
-        set(LIBTRITON_CXX_FLAGS "${LIBTRITON_CXX_FLAGS} -m32")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m32")
     endif()
-endif()
-
-
-# Use the same ABI as pin
-if(PINTOOL)
-    set(LIBTRITON_CXX_FLAGS "${LIBTRITON_CXX_FLAGS} -D_GLIBCXX_USE_CXX11_ABI=0")
 endif()
 
 
@@ -144,11 +141,49 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows" AND "${CMAKE_CXX_COMPILER_ID}" MATCHES
     endif()
 endif()
 
+# Find Z3
+if(NOT Z3_INCLUDE_DIRS)
+  set(Z3_INCLUDE_DIRS "$ENV{Z3_INCLUDE_DIRS}")
+endif()
+if(NOT STATICLIB) # Only if building dynamic library
+  if(NOT Z3_LIBRARIES)
+    set(Z3_LIBRARIES "$ENV{Z3_LIBRARIES}")
+  endif()
+  if(NOT Z3_INCLUDE_DIRS AND NOT Z3_LIBRARIES)
+      find_package(Z3 REQUIRED)
+      if(NOT Z3_FOUND)
+          message(FATAL_ERROR "Z3 not found")
+      endif()
+  endif()
+endif()
+include_directories(${Z3_INCLUDE_DIRS})
+
+
+# Find Capstone
+if(NOT CAPSTONE_INCLUDE_DIRS)
+  set(CAPSTONE_INCLUDE_DIRS "$ENV{CAPSTONE_INCLUDE_DIRS}")
+endif()
+if(NOT STATICLIB) # Only if building dynamic library
+  if(NOT CAPSTONE_LIBRARIES)
+    set(CAPSTONE_LIBRARIES "$ENV{CAPSTONE_LIBRARIES}")
+  endif()
+  if(NOT CAPSTONE_INCLUDE_DIRS AND NOT CAPSTONE_LIBRARIES)
+      find_package(CAPSTONE REQUIRED)
+      if(NOT CAPSTONE_FOUND)
+          message(FATAL_ERROR "Capstone not found")
+      endif()
+  endif()
+endif()
+include_directories(${CAPSTONE_INCLUDE_DIRS})
+
+# Find boost
+find_package(Boost 1.55.0 REQUIRED)
+include_directories("${Boost_INCLUDE_DIRS}")
+
 
 # Define library's properties
 add_library(${PROJECT_LIBTRITON} ${LIBTRITON_KIND_LINK} ${LIBTRITON_SOURCE_FILES})
-set_target_properties("${PROJECT_LIBTRITON}" PROPERTIES COMPILE_FLAGS "${LIBTRITON_CXX_FLAGS}")
-set_target_properties("${PROJECT_LIBTRITON}" PROPERTIES LINK_FLAGS "${LIBTRITON_SHARED_LINKER_FLAGS}")
+set_target_properties("${PROJECT_LIBTRITON}" PROPERTIES LINK_FLAGS "${LIBTRITON_SHARED_LINKER_FLAGS} --coverage")
 
 
 # Link Triton's dependencies
