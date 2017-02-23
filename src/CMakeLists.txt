@@ -4,5 +4,5 @@ if(PINTOOL)
   add_subdirectory(tracer)
 endif()
 
-add_subdirectory(examples)
-add_subdirectory(testers)
+#add_subdirectory(examples)
+#add_subdirectory(testers)
