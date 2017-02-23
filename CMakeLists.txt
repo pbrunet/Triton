@@ -24,7 +24,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   if(GCOV)
      add_custom_target(check
          COMMAND lcov --zerocounters --directory .
-         COMMAND lcov --capture --initial --directory . --output-file app
+         COMMAND lcov --capture --initial --directory . --output-file app --compat split_crc=on
          COMMAND ctest
          COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target test-python
          COMMAND lcov --no-checksum --directory . --capture --output-file coverage.info
