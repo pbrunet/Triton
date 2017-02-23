@@ -1,5 +1,3 @@
-option(GCOV "Enable code coverage" OFF)
-
 # Define if the library will be STATIC or DYNAMIC
 if(STATICLIB)
     set(LIBTRITON_KIND_LINK STATIC)
@@ -24,9 +22,7 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     # Flags
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wno-unused-parameter -Wno-unknown-pragmas -Wno-tautological-compare")
-    if(GCOV)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 --coverage -g")
-    else()
+    if(NOT GCOV)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
     endif()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-stack-protector -fomit-frame-pointer -fno-strict-aliasing")
