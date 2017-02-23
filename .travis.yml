@@ -35,7 +35,7 @@ matrix:
           addons:
             apt:
               sources: ['ubuntu-toolchain-r-test', 'cmake', 'boost-latest']
-              packages: ['g++-5', 'ccache', 'libpython2.7', 'libboost1.55-all-dev', 'cmake']
+              packages: ['g++-5', 'ccache', 'libpython2.7', 'libboost1.55-all-dev', 'cmake', "lcov"]
           env: [ CXX_COMPILER=g++-5, C_COMPILER=gcc-5, PYTHON_VERSION=2.7, GCOV=ON]
 
           #        # Linux clang 3.5
@@ -112,9 +112,10 @@ before_install:
   - cd ..
 
 install:
-  - wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.13.orig.tar.gz
-  - tar xf lcov_1.13.orig.tar.gz
-  - sudo make -C lcov-1.13/ install
+  - sudo ln -sf /usr/bin/gcov-5 /usr/bin/gcov
+    #- wget http://ftp.de.debian.org/debian/pool/main/l/lcov/lcov_1.13.orig.tar.gz
+    #- tar xf lcov_1.13.orig.tar.gz
+    #- sudo make -C lcov-1.13/ install
   # install lcov to coveralls conversion + upload tool
   - gem install coveralls-lcov
   # Install capstone
