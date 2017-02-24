@@ -29,14 +29,14 @@ matrix:
       #              packages: ['g++-5', 'ccache', 'libpython2.7', 'libboost1.55-all-dev', 'cmake']
       #          env: [ CXX_COMPILER=g++-5, C_COMPILER=gcc-5, PYTHON_VERSION=2.7]
 
-        # Linux gcc with gcov
+        # Linux gcc 5.0 with gcov
         - os: linux
           compiler: gcc
           addons:
             apt:
               sources: ['ubuntu-toolchain-r-test', 'cmake', 'boost-latest']
-              packages: ['g++', 'ccache', 'libpython2.7', 'libboost1.55-all-dev', 'cmake', "lcov"]
-          env: [ CXX_COMPILER=g++, C_COMPILER=gcc, PYTHON_VERSION=2.7, GCOV=ON]
+              packages: ['g++-5', 'ccache', 'libpython2.7', 'libboost1.55-all-dev', 'cmake', "lcov", "gcov"]
+          env: [ CXX_COMPILER=g++-5, C_COMPILER=gcc-5, PYTHON_VERSION=2.7, GCOV=ON]
 
           #        # Linux clang 3.5
           #        - os: linux
