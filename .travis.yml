@@ -35,7 +35,7 @@ matrix:
           addons:
             apt:
               sources: ['ubuntu-toolchain-r-test', 'cmake', 'boost-latest']
-              packages: ['g++-5', 'ccache', 'libpython2.7', 'libboost1.55-all-dev', 'cmake', "lcov", "gcov"]
+              packages: ['g++-5', 'ccache', 'libpython2.7', 'libboost1.55-all-dev', 'cmake', "lcov"]
           env: [ CXX_COMPILER=g++-5, C_COMPILER=gcc-5, PYTHON_VERSION=2.7, GCOV=ON]
 
           #        # Linux clang 3.5
@@ -149,6 +149,7 @@ script:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo sh -c "echo 0 > /proc/sys/kernel/yama/ptrace_scope"; fi
 
   # libTriton unit testing
+  - which gcov
   - gcc --version
   - gcov --version
   - make check
