@@ -119,7 +119,7 @@ add_library(${PROJECT_PINTOOL} SHARED ${PINTOOL_SOURCE_FILES})
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(${PROJECT_PINTOOL} pin xed pindwarf dl ${PROJECT_LIBTRITON})
-else if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     if(${ARCHITECTURE} STREQUAL "i386")
         target_link_libraries(${PROJECT_PINTOOL} pin pinvm xed ntdll-32 ${PROJECT_LIBTRITON})
     endif()
