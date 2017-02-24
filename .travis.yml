@@ -156,6 +156,7 @@ script:
   - sudo ctest
   - make test
   - make test-python
+  - cmake --build . --target help
   - lcov --list coverage.info # debug before upload
   - coveralls-lcov coverage.info # uploads to coveralls
 
