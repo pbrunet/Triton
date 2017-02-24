@@ -150,11 +150,6 @@ script:
 
   # libTriton unit testing
   - make check
-  - sudo make check
-  - sudo make test
-  - sudo ctest
-  - make test
-  - make test-python
   - cmake --build . --target help
   - lcov --list coverage.info # debug before upload
   - coveralls-lcov coverage.info # uploads to coveralls
