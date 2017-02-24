@@ -33,9 +33,9 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
          COMMAND ${CMAKE_COMMAND} -E echo "-- Report generated in ${CMAKE_CURRENT_BINARY_DIR}/coverage/index.html"
          )
   else()
-  # Special handling of Linux test to check if pin can be attached on other binaries.
-  add_custom_target(check COMMAND ${CMAKE_SOURCE_DIR}/src/scripts/run_linux_test.sh)
-endif()
+    # Special handling of Linux test to check if pin can be attached on other binaries.
+    add_custom_target(check COMMAND ${CMAKE_SOURCE_DIR}/src/scripts/run_linux_test.sh)
+  endif()
 else()
   add_custom_target(check ctest DEPENDS test-python)
 endif()

@@ -151,6 +151,9 @@ script:
 
   # libTriton unit testing
   - make check
+  - sudo make check
+  - sudo make test
+  - sudo ctest
   - lcov --list coverage.info # debug before upload
   - coveralls-lcov coverage.info # uploads to coveralls
 
