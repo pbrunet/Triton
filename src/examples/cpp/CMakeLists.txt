@@ -1,5 +1,7 @@
 enable_testing()
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++11")
+
 add_executable(taint_reg taint_reg.cpp)
 target_link_libraries(taint_reg triton)
 add_test(TaintRegister taint_reg)

@@ -103,8 +103,8 @@ endif()
 
 # We generate the version numbers information
 configure_file(
-    ${CMAKE_SOURCE_DIR}/src/libtriton/includes/version.hpp.in
-    ${CMAKE_SOURCE_DIR}/src/libtriton/includes/version.hpp
+    ${CMAKE_SOURCE_DIR}/src/libtriton/includes/triton/version.hpp.in
+    ${CMAKE_SOURCE_DIR}/src/libtriton/includes/triton/version.hpp
     IMMEDIATE @ONLY
 )
 
@@ -121,7 +121,7 @@ file(
 file(
     GLOB_RECURSE
     LIBTRITON_HEADERS_FILES
-    ${CMAKE_SOURCE_DIR}/src/libtriton/includes/*
+    ${CMAKE_SOURCE_DIR}/src/libtriton/includes/triton/*
 )
 
 
@@ -195,7 +195,7 @@ target_link_libraries(
 
 # Add the install targets
 install (TARGETS ${PROJECT_LIBTRITON} DESTINATION lib)
-install (FILES ${LIBTRITON_HEADERS_FILES} DESTINATION include/triton)
+install (FILES ${LIBTRITON_HEADERS_FILES} DESTINATION include)
 
 
 # Install Python bindings

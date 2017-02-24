@@ -9,10 +9,6 @@ endif()
 # Root directory of the Pin toolkit
 set(PIN_ROOT "${CMAKE_SOURCE_DIR}/../../.." CACHE PATH "Path to pin root directory")
 
-# Add Triton includes
-include_directories("${CMAKE_SOURCE_DIR}/src/libtriton/includes")
-
-
 # Specific Linux CXX Flags
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     if(${ARCHITECTURE} STREQUAL "i386")
