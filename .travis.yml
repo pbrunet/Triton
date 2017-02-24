@@ -154,6 +154,8 @@ script:
   - sudo make check
   - sudo make test
   - sudo ctest
+  - make test
+  - make test-python
   - lcov --list coverage.info # debug before upload
   - coveralls-lcov coverage.info # uploads to coveralls
 
