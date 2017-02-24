@@ -145,7 +145,6 @@ script:
   - sudo make -j2
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then sudo install_name_tool -change libcapstone.3.dylib /usr/local/lib/libcapstone.3.dylib libtriton.dylib; fi
   - sudo make install
-  - cd ..
 
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then sudo sh -c "echo 0 > /proc/sys/kernel/yama/ptrace_scope"; fi
 
