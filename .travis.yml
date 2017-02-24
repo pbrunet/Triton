@@ -150,7 +150,7 @@ script:
 
   # libTriton unit testing
   - which gcov
-  - gcc --version
+  - $C_COMPILER --version
   - gcov --version
   - make check
   - cmake --build . --target help
