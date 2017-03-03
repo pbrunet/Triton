@@ -39,10 +39,10 @@ namespace triton {
    */
 
     //! The Unix namespace
-    namespace unix {
+    namespace posix {
     /*!
      *  \ingroup os
-     *  \addtogroup unix
+     *  \addtogroup posix
      *  @{
      */
 
@@ -62,7 +62,7 @@ namespace triton {
       //! The syscall map 64
       extern const char* syscallmap64[];
 
-    /*! @} End of unix namespace */
+    /*! @} End of posix namespace */
     };
   /*! @} End of os namespace */
   };

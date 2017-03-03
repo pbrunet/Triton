@@ -6,10 +6,10 @@
 */
 
 #include <iostream>
+#include <Python.h>
 
 #include <triton/pythonBindings.hpp>
 #include <triton/pythonXFunctions.hpp>
-#include <triton/pythonBindings.hpp>
 
 
 

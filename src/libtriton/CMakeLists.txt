@@ -95,56 +95,6 @@ set(LIBTRITON_SOURCE_FILES
   utils/coreUtils.cpp
   )
 
-if(PYTHON_BINDINGS)
-set(LIBTRITON_PYTHON_SOURCE_FILES
-  bindings/python/init.cpp
-  bindings/python/modules/astCallbacks.cpp
-  bindings/python/modules/tritonCallbacks.cpp
-  bindings/python/namespaces/initArchNamespace.cpp
-  bindings/python/namespaces/initAstNodeNamespace.cpp
-  bindings/python/namespaces/initAstRepresentationNamespace.cpp
-  bindings/python/namespaces/initCallbackNamespace.cpp
-  bindings/python/namespaces/initCpuSizeNamespace.cpp
-  bindings/python/namespaces/initElfNamespace.cpp
-  bindings/python/namespaces/initModeNamespace.cpp
-  bindings/python/namespaces/initOperandNamespace.cpp
-  bindings/python/namespaces/initPeNamespace.cpp
-  bindings/python/namespaces/initRegNamespace.cpp
-  bindings/python/namespaces/initSymExprNamespace.cpp
-  bindings/python/namespaces/initSyscallNamespace.cpp
-  bindings/python/namespaces/initVersionNamespace.cpp
-  bindings/python/namespaces/initX86OpcodesNamespace.cpp
-  bindings/python/namespaces/initX86PrefixesNamespace.cpp
-  bindings/python/objects/pyAstNode.cpp
-  bindings/python/objects/pyBitvector.cpp
-  bindings/python/objects/pyElf.cpp
-  bindings/python/objects/pyElfDynamicTable.cpp
-  bindings/python/objects/pyElfHeader.cpp
-  bindings/python/objects/pyElfProgramHeader.cpp
-  bindings/python/objects/pyElfRelocationTable.cpp
-  bindings/python/objects/pyElfSectionHeader.cpp
-  bindings/python/objects/pyElfSymbolTable.cpp
-  bindings/python/objects/pyImmediate.cpp
-  bindings/python/objects/pyInstruction.cpp
-  bindings/python/objects/pyMemoryAccess.cpp
-  bindings/python/objects/pyPathConstraint.cpp
-  bindings/python/objects/pyPe.cpp
-  bindings/python/objects/pyPeExportEntry.cpp
-  bindings/python/objects/pyPeExportTable.cpp
-  bindings/python/objects/pyPeHeader.cpp
-  bindings/python/objects/pyPeImportLookup.cpp
-  bindings/python/objects/pyPeImportTable.cpp
-  bindings/python/objects/pyPeSectionHeader.cpp
-  bindings/python/objects/pyRegister.cpp
-  bindings/python/objects/pySolverModel.cpp
-  bindings/python/objects/pySymbolicExpression.cpp
-  bindings/python/objects/pySymbolicVariable.cpp
-  bindings/python/pyXFunctions.cpp
-  bindings/python/utils.cpp
-  )
-else()
-  set(LIBTRITON_PYTHON_SOURCE_FILES)
-endif()
 
 # Triton have to generate a syscalls table from the kernel source
 # This following code tries to find the unistd_64.h or unistd_32.h header depending on the architecture.
@@ -255,14 +205,13 @@ include_directories("${Boost_INCLUDE_DIRS}")
 
 
 # Define library's properties
-add_library(${PROJECT_LIBTRITON} ${LIBTRITON_KIND_LINK} ${LIBTRITON_SOURCE_FILES} ${LIBTRITON_PYTHON_SOURCE_FILES})
+add_library(${PROJECT_LIBTRITON} ${LIBTRITON_KIND_LINK} ${LIBTRITON_SOURCE_FILES})
 add_dependencies(${PROJECT_LIBTRITON} gen-syscall32 gen-syscall64)
 
 
 # Link Triton's dependencies
 target_link_libraries(
     ${PROJECT_LIBTRITON}
-    ${PYTHON_LIBRARIES}
     ${Boost_LIBRARIES}
     ${Z3_LIBRARIES}
     ${CAPSTONE_LIBRARIES}
@@ -283,6 +232,9 @@ if(PYTHON_BINDINGS)
         IMMEDIATE @ONLY
     )
     find_package(PythonInterp 2.7 REQUIRED)
-    install (CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/setup.py install)")
+    add_custom_target(python-triton ALL python ${CMAKE_SOURCE_DIR}/src/scripts/setup.py build -f
+      DEPENDS triton)
+    add_dependencies(python-triton triton)
+    install (CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_BINARY_DIR}/setup.py install --prefix=${CMAKE_INSTALL_PREFIX})")
 endif()
 

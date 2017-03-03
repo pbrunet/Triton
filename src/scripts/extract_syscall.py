@@ -21,12 +21,12 @@ HEADER = """
 
 namespace triton {
   namespace os {
-    namespace unix {
+    namespace posix {
 """
 
 FOOTER = """
 
-    }; /* unix namespace */
+    }; /* posix namespace */
   }; /* os namespace */
 }; /* triton namespace */
 

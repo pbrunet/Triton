@@ -30,10 +30,10 @@ namespace triton {
    */
 
     //! The Unix namespace
-    namespace unix {
+    namespace posix {
     /*!
      *  \ingroup os
-     *  \addtogroup unix
+     *  \addtogroup posix
      *  @{
      */
 
@@ -45,7 +45,7 @@ namespace triton {
       //! Returns the syscall name from its number.
       const char* syscall64NumberToString(uint32 syscallNumber);
 
-    /*! @} End of unix namespace */
+    /*! @} End of posix namespace */
     };
   /*! @} End of os namespace */
   };

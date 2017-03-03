@@ -15,25 +15,25 @@
 
 namespace triton {
   namespace os {
-    namespace unix {
+    namespace posix {
 
       #if defined(__unix__)
       const char* syscall32NumberToString(triton::uint32 syscallNumber) {
-        if (syscallNumber < static_cast<triton::uint32>(triton::os::unix::NB_SYSCALL32))
-          return triton::os::unix::syscallmap32[syscallNumber];
+        if (syscallNumber < static_cast<triton::uint32>(triton::os::posix::NB_SYSCALL32))
+          return triton::os::posix::syscallmap32[syscallNumber];
         else
           return nullptr;
       }
       #endif
 
       const char* syscall64NumberToString(triton::uint32 syscallNumber) {
-        if (syscallNumber < static_cast<triton::uint32>(triton::os::unix::NB_SYSCALL64))
-          return triton::os::unix::syscallmap64[syscallNumber];
+        if (syscallNumber < static_cast<triton::uint32>(triton::os::posix::NB_SYSCALL64))
+          return triton::os::posix::syscallmap64[syscallNumber];
         else
           return nullptr;
       }
 
-    }; /* unix namespace */
+    }; /* posix namespace */
   }; /* os namespace */
 }; /* triton namespace */
 
