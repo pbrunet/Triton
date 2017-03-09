@@ -55,6 +55,7 @@ install:
   - cmd: msbuild capstone-3.0.4\msvc\capstone.sln /p:Configuration=%configuration% /p:Platform=%platform% /p:PlatformToolset=v140 /t:capstone_static /m
   - cmd: echo Running cmake...
   - cmd: cmake .. -G "%CMAKE_TEMPLATE%"
+  - cmd: env
 
 #build:
 # Build manually until we can build every target. For now, we can't run test-python
