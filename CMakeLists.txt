@@ -25,9 +25,9 @@ endif()
 include(CTest)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-  set(PYTHONPATH_CMD set PYTHONPATH="${CMAKE_CURRENT_BINARY_DIR}/src/libtriton/${CMAKE_CFG_INTDIR}/")
+  set(PYTHONPATH_CMD set PYTHONPATH="${CMAKE_CURRENT_BINARY_DIR}/src/libtriton/${CMAKE_CFG_INTDIR}/;%PYTHONPATH%")
 else()
-  set(PYTHONPATH_CMD export PYTHONPATH="${CMAKE_CURRENT_BINARY_DIR}/src/libtriton/${CMAKE_CFG_INTDIR}/")
+  set(PYTHONPATH_CMD export PYTHONPATH="$PYTHONPATH:${CMAKE_CURRENT_BINARY_DIR}/src/libtriton/${CMAKE_CFG_INTDIR}/")
 endif()
 
 add_custom_target(test-python
