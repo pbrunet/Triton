@@ -38,7 +38,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
          COMMAND lcov --zerocounters --directory ${CMAKE_BINARY_DIR}/src/libtriton
          COMMAND lcov --capture --initial --directory ${CMAKE_BINARY_DIR}/src/libtriton --output-file app
          COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target test-python
-         COMMAND ${PYTHONPATH_CMD} && ctest
+         COMMAND ${PYTHONPATH_CMD} && ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target test
          COMMAND lcov --no-checksum --directory ${CMAKE_BINARY_DIR}/src/libtriton --capture --output-file coverage.info
          COMMAND lcov --remove coverage.info '/usr*' -o coverage.info
          COMMAND genhtml coverage.info -o coverage
@@ -52,7 +52,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   endif()
 else()
   add_custom_target(check
-    COMMAND ${PYTHONPATH_CMD} && ctest
+    COMMAND ${PYTHONPATH_CMD} && ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR} --target test
     DEPENDS test-python)
 endif()
 
