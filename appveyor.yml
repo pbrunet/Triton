@@ -69,11 +69,13 @@ build_script:
     #  - cmd: cmake --build . --config release
 
 test_script:
-  - cmd: cmake --build . --config %configuration% --target check
+  - cmd: cmake --build . --config Release --target check
 
 after_test:
   # Check installation
-  - cmd: cmake --build . --config %configuration% --target install
+  - cmd: dir C:\projects\triton\build\src\libtriton\Release
+  - cmd: dir C:\projects\triton\build\src\libtriton\%configuration%
+  - cmd: cmake --build . --config Release --target install
 
   # generate artifact
   - cmd: cd src\libtriton\%configuration%
