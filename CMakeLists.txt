@@ -32,7 +32,7 @@ else()
 endif()
 
 add_custom_target(test-python
-  COMMAND ${PYTHONPATH_CMD} && set && dir $ENV{PYTHONPATH} && python -m unittest discover ${CMAKE_SOURCE_DIR}/src/testers/unittests)
+  COMMAND ${CMAKE_COMMAND} -E env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}/src/libtriton/${CMAKE_CFG_INTDIR}/ python -m unittest discover ${CMAKE_SOURCE_DIR}/src/testers/unittests)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
   if(GCOV)
      add_custom_target(check
