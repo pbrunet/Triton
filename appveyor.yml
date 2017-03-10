@@ -73,8 +73,8 @@ test_script:
 
 after_test:
   # Check installation
-  - cmd: dir C:/projects/triton/build/src/libtriton/Release
-  - cmd: dir C:/projects/triton/build/src/libtriton/%configuration%
+  - cmd: dir C:\projects\triton\build\src\libtriton\Release
+  - cmd: dir C:\projects\triton\build\src\libtriton\%configuration%
   - cmd: cmake --build . --config release --target install
 
   # generate artifact
