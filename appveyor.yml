@@ -42,6 +42,8 @@ install:
   - cmd: echo Downloading z3...
   - cmd: curl -fsSL -o %Z3_PKG_NAME%.zip 'https://github.com/Z3Prover/z3/releases/download/z3-4.4.1/%Z3_PKG_NAME%.zip'
   - cmd: 7z x %Z3_PKG_NAME%.zip
+    # Install z3 in the path
+  - set PATH=%Z3_PKG_NAME%/bin;%PATH%
   - cmd: echo Downloading capstone...
   - cmd: curl -fsSL -o 3.0.4.zip 'https://github.com/aquynh/capstone/archive/3.0.4.zip'
   - cmd: 7z x 3.0.4.zip
