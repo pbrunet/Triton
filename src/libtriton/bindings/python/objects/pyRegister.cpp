@@ -5,8 +5,6 @@
 **  This program is under the terms of the BSD License.
 */
 
-#ifdef TRITON_PYTHON_BINDINGS
-
 #include <triton/exceptions.hpp>
 #include <triton/pythonObjects.hpp>
 #include <triton/pythonUtils.hpp>
@@ -372,10 +370,8 @@ namespace triton {
 
 
       PyObject* PyRegister(const triton::arch::Register& reg, triton::uint512 concreteValue, bool isImmutable) {
-        Register_Object* object;
-
         PyType_Ready(&Register_Type);
-        object = PyObject_NEW(Register_Object, &Register_Type);
+        Register_Object* object = PyObject_NEW(Register_Object, &Register_Type);
         if (object != NULL)
           object->reg = new triton::arch::Register(reg.getId(), concreteValue, isImmutable);
 
@@ -385,5 +381,3 @@ namespace triton {
     }; /* python namespace */
   }; /* bindings namespace */
 }; /* triton namespace */
-
-#endif /* TRITON_PYTHON_BINDINGS */
