@@ -5,7 +5,7 @@
 import os
 import unittest
 
-from triton import (TritonContext, ARCH, Instruction, OPCODE, Elf, REG, CPUSIZE,
+from triton import (TritonContext, ARCH, Instruction, OPCODE, REG, CPUSIZE,
                     MemoryAccess, MODE)
 
 
@@ -38,14 +38,14 @@ class TestIR(unittest.TestCase):
 
     def load_binary(self, filename):
         """Load in memory every opcode from an elf program."""
-        binary = Elf(filename)
-        raw = binary.getRaw()
-        phdrs = binary.getProgramHeaders()
+        import lief
+        binary = lief.parse(filename)
+        phdrs  = binary.segments
         for phdr in phdrs:
-            offset = phdr.getOffset()
-            size = phdr.getFilesz()
-            vaddr = phdr.getVaddr()
-            self.Triton.setConcreteMemoryAreaValue(vaddr, raw[offset:offset+size])
+            size   = phdr.physical_size
+            vaddr  = phdr.virtual_address
+            print '[+] Loading 0x%06x - 0x%06x' %(vaddr, vaddr+size)
+            self.Triton.setConcreteMemoryAreaValue(vaddr, phdr.content)
 
     def test_ir(self):
         """Load binary, setup environment and emulate the ir test suite."""
@@ -180,14 +180,14 @@ class TestIRQemu(unittest.TestCase):
 
     def load_binary(self, filename):
         """Load in memory every opcode from an elf program."""
-        binary = Elf(filename)
-        raw = binary.getRaw()
-        phdrs = binary.getProgramHeaders()
+        import lief
+        binary = lief.parse(filename)
+        phdrs  = binary.segments
         for phdr in phdrs:
-            offset = phdr.getOffset()
-            size = phdr.getFilesz()
-            vaddr = phdr.getVaddr()
-            self.Triton.setConcreteMemoryAreaValue(vaddr, raw[offset:offset+size])
+            size   = phdr.physical_size
+            vaddr  = phdr.virtual_address
+            print '[+] Loading 0x%06x - 0x%06x' %(vaddr, vaddr+size)
+            self.Triton.setConcreteMemoryAreaValue(vaddr, phdr.content)
         return binary
 
     def make_relocation(self, binary):
@@ -196,11 +196,9 @@ class TestIRQemu(unittest.TestCase):
             self.RELO[pltIndex][2] = self.BASE_PLT + pltIndex
 
         # Perform our own relocations
-        symbols = binary.getSymbolsTable()
-        relocations = binary.getRelocationTable()
-        for rel in relocations:
-            symbolName = symbols[rel.getSymidx()].getName()
-            symbolRelo = rel.getOffset()
+        for rel in binary.pltgot_relocations:
+            symbolName = rel.symbol.name
+            symbolRelo = rel.address
             for crel in self.RELO:
                 if symbolName == crel[0]:
                     self.Triton.setConcreteMemoryValue(MemoryAccess(symbolRelo, CPUSIZE.QWORD, crel[2]))
@@ -224,6 +222,6 @@ class TestIRQemu(unittest.TestCase):
         self.Triton.setConcreteRegisterValue(self.Triton.Register(REG.X86_64.RBP, 0x7fffffff))
         self.Triton.setConcreteRegisterValue(self.Triton.Register(REG.X86_64.RSP, 0x6fffffff))
 
-        self.emulate(binary.getHeader().getEntry())
+        self.emulate(binary.entrypoint)
         return
 
