@@ -6,7 +6,7 @@
 
 ##################################################################################### CMake libtriton
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 project(triton)
 
 # Define cmake options
@@ -16,6 +16,7 @@ option(PYTHON_BINDINGS "Enable Python bindings into the libtriton" ON)
 option(STATICLIB "Build a static library" OFF)
 option(INCBUILD "Increment the build number" OFF)
 option(GCOV "Enable code coverage" OFF)
+option(WITH_IWYU "Enable iwyu diagnostic" OFF)
 
 if(PINTOOL AND NOT PYTHON_BINDINGS)
   MESSAGE(FATAL_ERROR "You can't have pintools without python binding.")

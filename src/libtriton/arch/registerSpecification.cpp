@@ -6,7 +6,7 @@
 */
 
 #include <triton/registerSpecification.hpp>
-
+#include "triton/tritonTypes.hpp"  // for uint32
 
 
 namespace triton {

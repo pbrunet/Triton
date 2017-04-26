@@ -5,6 +5,7 @@
 **  This program is under the terms of the BSD License.
 */
 
+#include <z3++.h>
 #include <triton/api.hpp>
 #include <triton/exceptions.hpp>
 #include <triton/pythonObjects.hpp>
