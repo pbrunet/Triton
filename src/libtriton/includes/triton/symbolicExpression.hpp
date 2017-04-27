@@ -64,6 +64,8 @@ namespace triton {
           //! The origin register if `kind` is equal to `triton::engines::symbolic::REG`, `REG_INVALID` otherwise.
           triton::arch::Register originRegister;
 
+          std::vector<std::shared_ptr<SymbolicExpression>> subExpressions;
+
         public:
           //! True if the symbolic expression is tainted.
           bool isTainted;
@@ -103,6 +105,8 @@ namespace triton {
 
           //! Returns the origin register if `kind` is equal to `triton::engines::symbolic::REG`, `REG_INVALID` otherwise.
           const triton::arch::Register& getOriginRegister(void) const;
+
+          void addSymbolicExpressionDependency(std::shares_ptr<SymbolicExpression>& expr);
 
           //! Sets a root node.
           void setAst(triton::ast::AbstractNode* node);

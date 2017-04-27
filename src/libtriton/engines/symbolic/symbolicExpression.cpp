@@ -108,6 +108,11 @@ namespace triton {
       }
 
 
+      void SymbolicExpression::addSymbolicExpressionDependency(std::shares_ptr<SymbolicExpression>& expr)
+      {
+        subExpressions.push_back(expr);
+      }
+
       void SymbolicExpression::setAst(triton::ast::AbstractNode* node) {
         node->setParent(this->ast->getParents());
         this->ast = node;

@@ -85,8 +85,12 @@ namespace triton {
            * \details
            * **item1**: symbolic reference id<br>
            * **item2**: symbolic expression
+           *
+           * A symbolicExpressions is owned by : memoryReference, SymbolicReg or
+           * another symbolicExpression. Here we only keep pointer to the expression,
+           * we don't track its ownership;
            */
-          std::map<triton::usize, SymbolicExpression*> symbolicExpressions;
+          std::map<triton::usize, std::weak_ptr<SymbolicExpression>> symbolicExpressions;
 
           /*! \brief map of address -> symbolic expression
            *
@@ -94,7 +98,7 @@ namespace triton {
            * **item1**: memory address<br>
            * **item2**: symbolic reference id
            */
-          std::map<triton::uint64, triton::usize> memoryReference;
+          std::map<triton::uint64, std::shared_ptr<SymbolicExpression>> memoryReference;
 
           /*! \brief map of <address:size> -> symbolic expression.
            *
@@ -141,7 +145,7 @@ namespace triton {
           void operator=(const SymbolicEngine& other);
 
           //! Symbolic register state.
-          triton::usize* symbolicReg;
+          std::shared_ptr<SymbolicExpression>* symbolicReg;
 
           //! Creates a new symbolic expression.
           SymbolicExpression* newSymbolicExpression(triton::ast::AbstractNode* node, symkind_e kind, const std::string& comment="");
