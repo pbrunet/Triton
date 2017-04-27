@@ -8,7 +8,6 @@
 #include <triton/api.hpp>
 #include <new>                            // for nothrow, operator new
 #include <triton/exceptions.hpp>          // for API
-#include "triton/astRepresentation.hpp"   // for AstRepresentation, astRepre...
 #include "triton/callbacks.hpp"           // for callback_e, getConcreteMemo...
 #include "triton/irBuilder.hpp"           // for IrBuilder
 #include "triton/modes.hpp"               // for mode_e
@@ -530,12 +529,12 @@ namespace triton {
   /* AST representation API ========================================================================= */
 
   triton::uint32 API::getAstRepresentationMode(void) const {
-    return triton::ast::representations::astRepresentation.getMode();
+    return this->astCtxt.getRepresentationMode();
   }
 
 
   void API::setAstRepresentationMode(triton::uint32 mode) {
-    triton::ast::representations::astRepresentation.setMode(mode);
+    this->astCtxt.setRepresentationMode(mode);
   }
 
 
