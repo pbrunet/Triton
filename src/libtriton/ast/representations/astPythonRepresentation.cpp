@@ -75,7 +75,6 @@ namespace triton {
           case REFERENCE_NODE:            return this->print(stream, reinterpret_cast<triton::ast::ReferenceNode*>(node)); break;
           case STRING_NODE:               return this->print(stream, reinterpret_cast<triton::ast::StringNode*>(node)); break;
           case SX_NODE:                   return this->print(stream, reinterpret_cast<triton::ast::SxNode*>(node)); break;
-          case VARIABLE_NODE:             return this->print(stream, reinterpret_cast<triton::ast::VariableNode*>(node)); break;
           case ZX_NODE:                   return this->print(stream, reinterpret_cast<triton::ast::ZxNode*>(node)); break;
           default:
             throw triton::exceptions::AstRepresentation("AstPythonRepresentation::print(AbstractNode): Invalid kind node.");
@@ -430,13 +429,6 @@ namespace triton {
         else
           stream << node->getChilds()[1];
 
-        return stream;
-      }
-
-
-      /* variable representation */
-      std::ostream& AstPythonRepresentation::print(std::ostream& stream, triton::ast::VariableNode* node) {
-        stream << node->getVar().getName();
         return stream;
       }
 

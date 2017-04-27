@@ -95,7 +95,6 @@ namespace triton {
       this->referenceDictionary         = other.referenceDictionary;
       this->stringDictionary            = other.stringDictionary;
       this->sxDictionary                = other.sxDictionary;
-      this->variableDictionary          = other.variableDictionary;
       this->zxDictionary                = other.zxDictionary;
 
       this->linkDictionaries();
@@ -150,7 +149,6 @@ namespace triton {
       this->dictionaries[triton::ast::REFERENCE_NODE]          = &this->referenceDictionary;
       this->dictionaries[triton::ast::STRING_NODE]             = &this->stringDictionary;
       this->dictionaries[triton::ast::SX_NODE]                 = &this->sxDictionary;
-      this->dictionaries[triton::ast::VARIABLE_NODE]           = &this->variableDictionary;
       this->dictionaries[triton::ast::ZX_NODE]                 = &this->zxDictionary;
     }
 
@@ -185,17 +183,6 @@ namespace triton {
 
         case triton::ast::STRING_NODE: {
           auto value       = static_cast<triton::ast::StringNode*>(node)->getValue();
-          auto dictionary  = static_cast<std::map<std::string, triton::ast::AbstractNode*>*>((this->dictionaries[kind]));
-          if (dictionary->find(value) != dictionary->end()) {
-            delete node;
-            return (*dictionary)[value];
-          }
-          (*dictionary)[value] = node;
-          break;
-        }
-
-        case triton::ast::VARIABLE_NODE: {
-          auto value       = static_cast<triton::ast::VariableNode*>(node)->getVar().getName();
           auto dictionary  = static_cast<std::map<std::string, triton::ast::AbstractNode*>*>((this->dictionaries[kind]));
           if (dictionary->find(value) != dictionary->end()) {
             delete node;
@@ -272,7 +259,6 @@ namespace triton {
       stats["reference"]              = this->referenceDictionary.size();
       stats["string"]                 = this->stringDictionary.size();
       stats["sx"]                     = this->sxDictionary.size();
-      stats["variable"]               = this->variableDictionary.size();
       stats["zx"]                     = this->zxDictionary.size();
       stats["allocatedDictionaries"]  = this->allocatedDictionaries.size();
       stats["allocatedNodes"]         = this->allocatedNodes;

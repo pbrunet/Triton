@@ -805,7 +805,8 @@ class TestAstEval(unittest.TestCase):
     def test_reference(self):
         """Check evaluation of reference node after variable update."""
         self.sv1 = self.Triton.newSymbolicVariable(8)
-        self.v1 = self.astCtxt.variable(self.sv1)
+        self.v1 = self.astCtxt.variable(self.sv1.getName())
+        self.Triton.setConcreteSymbolicVariableSize(self.sv1)
         subnode = self.astCtxt.bvadd(self.v1, self.v1)
         expr = self.Triton.newSymbolicExpression(subnode)
         final_node = self.astCtxt.bvsub(self.astCtxt.reference(expr), self.astCtxt.bv(8, 8))

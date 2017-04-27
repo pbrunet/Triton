@@ -637,21 +637,6 @@ namespace triton {
     };
 
 
-    //! Variable node
-    class VariableNode : public AbstractNode {
-      protected:
-        triton::engines::symbolic::SymbolicVariable& symVar;
-
-      public:
-        VariableNode(triton::engines::symbolic::SymbolicVariable& symVar, AstContext& ctxt);
-        virtual void init(void);
-        virtual void accept(AstVisitor& v);
-        virtual triton::uint512 hash(triton::uint32 deep) const;
-
-        triton::engines::symbolic::SymbolicVariable& getVar(void);
-    };
-
-
     //! `((_ zero_extend sizeExt) <expr>)` node
     class ZxNode : public AbstractNode {
       public:

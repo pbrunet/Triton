@@ -60,26 +60,20 @@ def cafter(instruction):
         raxId = Triton.getSymbolicRegisterId(Triton.Register(REG.X86_64.RAX))
         raxExpr = Triton.getFullAstFromId(raxId)
 
-        SymVar_0 = Triton.getSymbolicVariableFromName('SymVar_0')
-        SymVar_1 = Triton.getSymbolicVariableFromName('SymVar_1')
-        SymVar_2 = Triton.getSymbolicVariableFromName('SymVar_2')
-        SymVar_3 = Triton.getSymbolicVariableFromName('SymVar_3')
-        SymVar_4 = Triton.getSymbolicVariableFromName('SymVar_4')
-
         astCtxt = Triton.getAstContext()
 
         # We want printable characters
         expr = astCtxt.compound([
-                 astCtxt.assert_(astCtxt.bvugt(astCtxt.variable(SymVar_0), astCtxt.bv(96,  CPUSIZE.QWORD_BIT))),
-                 astCtxt.assert_(astCtxt.bvult(astCtxt.variable(SymVar_0), astCtxt.bv(123, CPUSIZE.QWORD_BIT))),
-                 astCtxt.assert_(astCtxt.bvugt(astCtxt.variable(SymVar_1), astCtxt.bv(96,  CPUSIZE.QWORD_BIT))),
-                 astCtxt.assert_(astCtxt.bvult(astCtxt.variable(SymVar_1), astCtxt.bv(123, CPUSIZE.QWORD_BIT))),
-                 astCtxt.assert_(astCtxt.bvugt(astCtxt.variable(SymVar_2), astCtxt.bv(96,  CPUSIZE.QWORD_BIT))),
-                 astCtxt.assert_(astCtxt.bvult(astCtxt.variable(SymVar_2), astCtxt.bv(123, CPUSIZE.QWORD_BIT))),
-                 astCtxt.assert_(astCtxt.bvugt(astCtxt.variable(SymVar_3), astCtxt.bv(96,  CPUSIZE.QWORD_BIT))),
-                 astCtxt.assert_(astCtxt.bvult(astCtxt.variable(SymVar_3), astCtxt.bv(123, CPUSIZE.QWORD_BIT))),
-                 astCtxt.assert_(astCtxt.bvugt(astCtxt.variable(SymVar_4), astCtxt.bv(96,  CPUSIZE.QWORD_BIT))),
-                 astCtxt.assert_(astCtxt.bvult(astCtxt.variable(SymVar_4), astCtxt.bv(123, CPUSIZE.QWORD_BIT))),
+                 astCtxt.assert_(astCtxt.bvugt(astCtxt.variable("SymVar_0"), astCtxt.bv(96,  CPUSIZE.QWORD_BIT))),
+                 astCtxt.assert_(astCtxt.bvult(astCtxt.variable("SymVar_0"), astCtxt.bv(123, CPUSIZE.QWORD_BIT))),
+                 astCtxt.assert_(astCtxt.bvugt(astCtxt.variable("SymVar_1"), astCtxt.bv(96,  CPUSIZE.QWORD_BIT))),
+                 astCtxt.assert_(astCtxt.bvult(astCtxt.variable("SymVar_1"), astCtxt.bv(123, CPUSIZE.QWORD_BIT))),
+                 astCtxt.assert_(astCtxt.bvugt(astCtxt.variable("SymVar_2"), astCtxt.bv(96,  CPUSIZE.QWORD_BIT))),
+                 astCtxt.assert_(astCtxt.bvult(astCtxt.variable("SymVar_2"), astCtxt.bv(123, CPUSIZE.QWORD_BIT))),
+                 astCtxt.assert_(astCtxt.bvugt(astCtxt.variable("SymVar_3"), astCtxt.bv(96,  CPUSIZE.QWORD_BIT))),
+                 astCtxt.assert_(astCtxt.bvult(astCtxt.variable("SymVar_3"), astCtxt.bv(123, CPUSIZE.QWORD_BIT))),
+                 astCtxt.assert_(astCtxt.bvugt(astCtxt.variable("SymVar_4"), astCtxt.bv(96,  CPUSIZE.QWORD_BIT))),
+                 astCtxt.assert_(astCtxt.bvult(astCtxt.variable("SymVar_4"), astCtxt.bv(123, CPUSIZE.QWORD_BIT))),
                  astCtxt.assert_(astCtxt.equal(raxExpr, astCtxt.bv(0xad6d, CPUSIZE.QWORD_BIT)))  # collision: (assert (= rax 0xad6d)
                ])
 

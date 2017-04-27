@@ -17,8 +17,12 @@ class TestAstDuplication(unittest.TestCase):
         self.Triton.setArchitecture(ARCH.X86_64)
         self.astCtxt = self.Triton.getAstContext()
 
-        self.v1  = self.astCtxt.variable(self.Triton.newSymbolicVariable(8))
-        self.v2  = self.astCtxt.variable(self.Triton.newSymbolicVariable(8))
+        self.sv1 = self.Triton.newSymbolicVariable(8)
+        self.v1  = self.astCtxt.variable(self.sv1.getName())
+        self.Triton.setConcreteSymbolicVariableSize(self.sv1)
+        self.sv2 = self.Triton.newSymbolicVariable(8)
+        self.v2  = self.astCtxt.variable(self.sv2.getName())
+        self.Triton.setConcreteSymbolicVariableSize(self.sv2)
         self.ref = self.Triton.newSymbolicExpression(self.v1 + self.v2, "ref test")
 
         self.node = [

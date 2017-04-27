@@ -25,8 +25,10 @@ class TestAstConversion(unittest.TestCase):
         self.sv1 = self.Triton.newSymbolicVariable(8)
         self.sv2 = self.Triton.newSymbolicVariable(8)
 
-        self.v1 = self.astCtxt.variable(self.sv1)
-        self.v2 = self.astCtxt.variable(self.sv2)
+        self.v1 = self.astCtxt.variable(self.sv1.getName())
+        self.Triton.setConcreteSymbolicVariableSize(self.sv1);
+        self.v2 = self.astCtxt.variable(self.sv2.getName())
+        self.Triton.setConcreteSymbolicVariableSize(self.sv2);
 
     def test_binop(self):
         """

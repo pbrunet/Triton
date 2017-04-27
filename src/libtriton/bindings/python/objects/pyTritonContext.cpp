@@ -2321,6 +2321,22 @@ namespace triton {
         return Py_None;
       }
 
+      static PyObject* TritonContext_setConcreteSymbolicVariableSize(PyObject* self, PyObject* symVar) {
+
+        if (!PySymbolicVariable_Check(symVar))
+          return PyErr_Format(PyExc_TypeError, "setConcreteSymbolicVariableSize(): Expects a symvar as first argument.");
+
+        try {
+            PyTritonContext_AsTritonContext(self)->setConcreteSymbolicVariableSize(*PySymbolicVariable_AsSymbolicVariable(symVar));
+        }
+        catch (const triton::exceptions::Exception& e) {
+          return PyErr_Format(PyExc_TypeError, "%s", e.what());
+        }
+
+        Py_INCREF(Py_None);
+        return Py_None;
+      }
+
 
       static PyObject* TritonContext_setTaintMemory(PyObject* self, PyObject* args) {
         PyObject* mem    = nullptr;
@@ -2958,6 +2974,7 @@ namespace triton {
         {"setConcreteMemoryValue",              (PyCFunction)TritonContext_setConcreteMemoryValue,                 METH_VARARGS,       ""},
         {"setConcreteRegisterValue",            (PyCFunction)TritonContext_setConcreteRegisterValue,               METH_O,             ""},
         {"setConcreteSymbolicVariableValue",    (PyCFunction)TritonContext_setConcreteSymbolicVariableValue,       METH_VARARGS,       ""},
+        {"setConcreteSymbolicVariableSize",     (PyCFunction)TritonContext_setConcreteSymbolicVariableSize,        METH_O,             ""},
         {"setTaintMemory",                      (PyCFunction)TritonContext_setTaintMemory,                         METH_VARARGS,       ""},
         {"setTaintRegister",                    (PyCFunction)TritonContext_setTaintRegister,                       METH_VARARGS,       ""},
         {"simplify",                            (PyCFunction)TritonContext_simplify,                               METH_VARARGS,       ""},

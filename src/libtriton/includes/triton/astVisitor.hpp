@@ -72,7 +72,6 @@ namespace triton {
     class ReferenceNode;
     class StringNode;
     class SxNode;
-    class VariableNode;
     class ZxNode;
 
     //! \interface AstVisitor
@@ -129,7 +128,6 @@ namespace triton {
         virtual void operator()(ReferenceNode& e) = 0;
         virtual void operator()(StringNode& e) = 0;
         virtual void operator()(SxNode& e) = 0;
-        virtual void operator()(VariableNode& e) = 0;
         virtual void operator()(ZxNode& e) = 0;
     }; /* AstVisitor class */
 

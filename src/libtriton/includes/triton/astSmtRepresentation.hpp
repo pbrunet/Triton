@@ -75,7 +75,6 @@ namespace triton {
     class ReferenceNode;
     class StringNode;
     class SxNode;
-    class VariableNode;
     class ZxNode;
 
     //! The Representations namespace
@@ -238,9 +237,6 @@ namespace triton {
 
           //! Displays the node according to the representation mode.
           std::ostream& print(std::ostream& stream, triton::ast::SxNode* node);
-
-          //! Displays the node according to the representation mode.
-          std::ostream& print(std::ostream& stream, triton::ast::VariableNode* node);
 
           //! Displays the node according to the representation mode.
           std::ostream& print(std::ostream& stream, triton::ast::ZxNode* node);

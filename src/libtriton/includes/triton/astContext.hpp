@@ -203,9 +203,6 @@ namespace triton {
         //! AST C++ API - sx node builder
         AbstractNode* sx(triton::uint32 sizeExt, AbstractNode* expr);
 
-        //! AST C++ API - variable node builder
-        AbstractNode* variable(triton::engines::symbolic::SymbolicVariable& symVar);
-
         //! AST C++ API - zx node builder
         AbstractNode* zx(triton::uint32 sizeExt, AbstractNode* expr);
 
@@ -216,13 +213,18 @@ namespace triton {
         const triton::ast::AstGarbageCollector& getAstGarbageCollector(void) const;
 
         //! Initialize a variable in the context
-        void initVariable(const std::string& name, const triton::uint512& value);
+        void initVariable(const std::string& name, const triton::uint512& value, const triton::uint32& size);
 
         //! Update a variable value in this context
         void updateVariable(const std::string& name, const triton::uint512& value);
 
+        //! Update a variable size in this context
+        void updateSize(const std::string& name, triton::uint32 size);
+
         //! Access a variable value in this context
         const triton::uint512& getValueForVariable(const std::string& varName) const;
+
+        const triton::uint32& getSizeForVariable(const std::string& varName) const;
 
         //! Set the representation mode for this astContext
         void setRepresentationMode(triton::uint32 mode);
@@ -238,7 +240,7 @@ namespace triton {
         triton::ast::AstGarbageCollector astGarbageCollector;
 
         //! Map a concrete value for a variable name.
-        std::map<std::string, triton::uint512> valueMapping;
+        std::map<std::string, std::pair<triton::uint512, triton::uint32>> valueMapping;
 
         //! String formater for ast
         triton::ast::representations::AstRepresentation astRepresentation;

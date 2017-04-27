@@ -76,8 +76,8 @@ namespace triton {
         this->allocatedNodes.erase(*it);
 
         /* Remove the node from the global variables map */
-        if ((*it)->getKind() == triton::ast::VARIABLE_NODE)
-          this->variableNodes.erase(reinterpret_cast<triton::ast::VariableNode*>(*it)->getVar().getName());
+        if ((*it)->getKind() == triton::ast::STRING_NODE)
+          this->variableNodes.erase(reinterpret_cast<triton::ast::StringNode*>(*it)->getValue());
 
         /* Delete the node */
         delete *it;

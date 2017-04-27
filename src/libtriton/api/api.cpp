@@ -818,6 +818,12 @@ namespace triton {
   }
 
 
+  void API::setConcreteSymbolicVariableSize(const triton::engines::symbolic::SymbolicVariable& symVar) {
+    this->checkSymbolic();
+    return this->symbolic->setConcreteSymbolicVariableSize(symVar);
+  }
+
+
   triton::engines::symbolic::SymbolicVariable* API::getSymbolicVariableFromId(triton::usize symVarId) const {
     this->checkSymbolic();
     return this->symbolic->getSymbolicVariableFromId(symVarId);

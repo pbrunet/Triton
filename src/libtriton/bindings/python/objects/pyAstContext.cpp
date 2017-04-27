@@ -1408,7 +1408,7 @@ namespace triton {
 
       static PyObject* AstContext_string(PyObject* self, PyObject* expr) {
         if (!PyString_Check(expr))
-          return PyErr_Format(PyExc_TypeError, "string(): expected a string as first argument");
+          return PyErr_Format(PyExc_TypeError, "string() and variable(): expected a string as first argument");
 
         try {
           return PyAstNode(PyAstContext_AsAstContext(self)->string(PyString_AsString(expr)));
@@ -1434,19 +1434,6 @@ namespace triton {
 
         try {
           return PyAstNode(PyAstContext_AsAstContext(self)->sx(PyLong_AsUint32(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_variable(PyObject* self, PyObject* symVar) {
-        if (!PySymbolicVariable_Check(symVar))
-          return PyErr_Format(PyExc_TypeError, "variable(): expected a SymbolicVariable as first argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->variable(*PySymbolicVariable_AsSymbolicVariable(symVar)));
         }
         catch (const triton::exceptions::Exception& e) {
           return PyErr_Format(PyExc_TypeError, "%s", e.what());
@@ -1526,7 +1513,7 @@ namespace triton {
         {"reference",     AstContext_reference,       METH_O,           ""},
         {"string",        AstContext_string,          METH_O,           ""},
         {"sx",            AstContext_sx,              METH_VARARGS,     ""},
-        {"variable",      AstContext_variable,        METH_O,           ""},
+        {"variable",      AstContext_string,          METH_O,           ""},
         {"zx",            AstContext_zx,              METH_VARARGS,     ""},
         {nullptr,         nullptr,                    0,                nullptr}
       };

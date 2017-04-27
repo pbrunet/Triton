@@ -15,7 +15,7 @@ def test1():
             astCtxt.equal(
                 astCtxt.bvsub(
                     astCtxt.bvxor(
-                        astCtxt.variable(x),
+                        astCtxt.variable(x.getName()),
                         astCtxt.bv(0x40, 32)
                     ),
                     astCtxt.bv(1, 32)
@@ -23,6 +23,7 @@ def test1():
                 astCtxt.bv(0x10, 32)
             )
         )
+    Triton.setConcreteSymbolicVariableSize(x)
     print 'Test 1:', Triton.getModel(c)[0]
 
     return
@@ -35,8 +36,9 @@ def test2():
 
     x = Triton.newSymbolicVariable(32)
     c = astCtxt.assert_(
-            (astCtxt.variable(x) ^ 0x40) - 1 == 0x10
+            (astCtxt.variable(x.getName()) ^ 0x40) - 1 == 0x10
         )
+    Triton.setConcreteSymbolicVariableSize(x)
     print 'Test 2:', Triton.getModel(c)[0]
 
     return
@@ -50,10 +52,11 @@ def test3():
     x = Triton.newSymbolicVariable(8)
     c = astCtxt.assert_(
             astCtxt.land(
-                astCtxt.variable(x) * astCtxt.variable(x) - 1 == 0x20,
-                astCtxt.variable(x) != 0x11
+                astCtxt.variable(x.getName()) * astCtxt.variable(x.getName()) - 1 == 0x20,
+                astCtxt.variable(x.getName()) != 0x11
             )
         )
+    Triton.setConcreteSymbolicVariableSize(x)
     print 'Test 3:', Triton.getModel(c)[0]
 
     return
@@ -66,8 +69,9 @@ def test4():
 
     x = Triton.newSymbolicVariable(8)
     c = astCtxt.assert_(
-            astCtxt.variable(x) * astCtxt.variable(x) - 1 == 0x20,
+            astCtxt.variable(x.getName()) * astCtxt.variable(x.getName()) - 1 == 0x20,
         )
+    Triton.setConcreteSymbolicVariableSize(x)
     print 'Test 4:', Triton.getModels(c, 10)
 
     return

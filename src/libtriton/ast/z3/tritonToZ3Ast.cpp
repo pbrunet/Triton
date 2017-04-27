@@ -12,7 +12,7 @@
 #include <triton/exceptions.hpp>          // for AstTranslations
 #include <triton/tritonToZ3Ast.hpp>       // for TritonToZ3Ast
 #include "triton/ast.hpp"                 // for AbstractNode (ptr only)
-#include "triton/symbolicEnums.hpp"       // for symkind_e::MEM, symkind_e::REG
+#include "triton/astContext.hpp"          // for astContext
 #include "triton/symbolicExpression.hpp"  // for SymbolicExpression
 #include "triton/symbolicVariable.hpp"    // for SymbolicVariable
 #include "triton/tritonTypes.hpp"         // for uint32, uint512
@@ -463,10 +463,29 @@ namespace triton {
 
 
     void TritonToZ3Ast::operator()(triton::ast::StringNode& e) {
-      if (this->symbols.find(e.getValue()) == this->symbols.end())
-        throw triton::exceptions::AstTranslations("TritonToZ3Ast::StringNode(): Symbols not found.");
-      Z3Result op1 = this->eval(*(this->symbols[e.getValue()]));
-      this->result.setExpr(op1.getExpr());
+      // Check if it is a smt define variable (from a let for example)
+      if (this->symbols.find(e.getValue()) != this->symbols.end()) {
+        Z3Result op1 = this->eval(*(this->symbols[e.getValue()]));
+        this->result.setExpr(op1.getExpr());
+      }
+      // Symbole not found. It is certainly a variable
+      /* If the conversion is used to evaluate a node, we concretize symbolic variables */
+      auto& ctxt = e.getContext();
+      triton::uint32 size = ctxt.getSizeForVariable(e.getValue());
+      if(size == 0)
+        throw triton::exceptions::AstTranslations("TritonToZ3Ast::operator(StringNode): Can't evaluate a node with 0 bits.");
+
+      if (this->isEval) {
+        triton::uint512 const& eval = ctxt.getValueForVariable(e.getValue());
+        std::string memStrValue(eval);
+        z3::expr newexpr = this->result.getContext().bv_val(memStrValue.c_str(), size);
+        this->result.setExpr(newexpr);
+      }
+      /* Otherwise, we keep the symbolic variables for a real conversion */
+      else {
+        z3::expr newexpr = this->result.getContext().bv_const(e.getValue().c_str(), size);
+        this->result.setExpr(newexpr);
+      }
     }
 
 
@@ -477,43 +496,6 @@ namespace triton {
       z3::expr newexpr    = to_expr(this->result.getContext(), Z3_mk_sign_ext(this->result.getContext(), extv, value.getExpr()));
 
       this->result.setExpr(newexpr);
-    }
-
-
-    void TritonToZ3Ast::operator()(triton::ast::VariableNode& e) {
-      std::string varName = e.getVar().getName();
-      triton::engines::symbolic::SymbolicVariable* symVar = this->symbolicEngine->getSymbolicVariableFromName(varName);
-
-      if (symVar == nullptr)
-        throw triton::exceptions::AstTranslations("TritonToZ3Ast::VariableNode(): Can't get the symbolic variable (nullptr).");
-
-      if (symVar->getSize() > QWORD_SIZE_BIT)
-        throw triton::exceptions::AstTranslations("TritonToZ3Ast::VariableNode(): Size above 64 bits is not supported yet.");
-
-      /* If the conversion is used to evaluate a node, we concretize symbolic variables */
-      if (this->isEval) {
-        if (symVar->getKind() == triton::engines::symbolic::MEM) {
-          triton::uint32 memSize   = symVar->getSize();
-          triton::uint512 memValue = e.evaluate();
-          std::string memStrValue(memValue);
-          z3::expr newexpr = this->result.getContext().bv_val(memStrValue.c_str(), memSize);
-          this->result.setExpr(newexpr);
-        }
-        else if (symVar->getKind() == triton::engines::symbolic::REG) {
-          triton::uint512 regValue = e.evaluate();
-          std::string regStrValue(regValue);
-          z3::expr newexpr = this->result.getContext().bv_val(regStrValue.c_str(), symVar->getSize());
-          this->result.setExpr(newexpr);
-        }
-        else
-          throw triton::exceptions::AstTranslations("TritonToZ3Ast::VariableNode(): UNSET.");
-      }
-      /* Otherwise, we keep the symbolic variables for a real conversion */
-      else {
-        //z3::expr newexpr = to_expr(this->result.getContext(), Z3_mk_const(this->result.getContext(), Z3_mk_string_symbol(this->result.getContext(), symVar->getName().c_str()), Z3_mk_bv_sort(this->result.getContext(), symVar->getSize())));
-        z3::expr newexpr = this->result.getContext().bv_const(symVar->getName().c_str(), symVar->getSize());
-        this->result.setExpr(newexpr);
-      }
     }
 
 

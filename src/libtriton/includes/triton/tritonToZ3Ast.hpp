@@ -157,8 +157,6 @@ namespace triton {
         //! Evaluate operator.
         virtual void operator()(triton::ast::SxNode& e);
         //! Evaluate operator.
-        virtual void operator()(triton::ast::VariableNode& e);
-        //! Evaluate operator.
         virtual void operator()(triton::ast::ZxNode& e);
     };
 

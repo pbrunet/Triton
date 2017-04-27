@@ -17,7 +17,6 @@ namespace triton {
   namespace engines {
     namespace symbolic {
       class SymbolicExpression;
-      class SymbolicVariable;
     }
   }
   namespace modes {
@@ -443,7 +442,10 @@ namespace triton {
       AbstractNode* node = new(std::nothrow) StringNode(value, *this);
       if (node == nullptr)
         throw triton::exceptions::Ast("Node builders - Not enough memory");
-      return astGarbageCollector.recordAstNode(node);
+
+      AbstractNode* ret = astGarbageCollector.recordAstNode(node);
+      astGarbageCollector.recordVariableAstNode(value, ret);
+      return ret;
     }
 
 
@@ -453,18 +455,6 @@ namespace triton {
         throw triton::exceptions::Ast("Node builders - Not enough memory");
       return astGarbageCollector.recordAstNode(node);
     }
-
-
-    AbstractNode* AstContext::variable(triton::engines::symbolic::SymbolicVariable& symVar) {
-      AbstractNode* ret  = nullptr;
-      AbstractNode* node = new(std::nothrow) VariableNode(symVar, *this);
-      if (node == nullptr)
-        throw triton::exceptions::Ast("Node builders - Not enough memory");
-      ret = astGarbageCollector.recordAstNode(node);
-      astGarbageCollector.recordVariableAstNode(symVar.getName(), ret);
-      return ret;
-    }
-
 
     AbstractNode* AstContext::zx(triton::uint32 sizeExt, AbstractNode* expr) {
       AbstractNode* node = new(std::nothrow) ZxNode(sizeExt, expr);
@@ -484,18 +474,16 @@ namespace triton {
     }
 
 
-    void AstContext::initVariable(const std::string& name, const triton::uint512& value) {
-      auto it = this->valueMapping.find(name);
-      if(it == this->valueMapping.end())
-        this->valueMapping.insert(std::make_pair(name, value));
+    void AstContext::initVariable(const std::string& name, const triton::uint512& value, const triton::uint32& size) {
+      this->valueMapping.insert(std::make_pair(name, std::make_pair(value, size)));
     }
 
 
     void AstContext::updateVariable(const std::string& name, const triton::uint512& value) {
       for (auto& kv: this->astGarbageCollector.getAstVariableNodes()) {
         if (kv.first == name) {
-          assert(kv.second[0]->getType() == triton::ast::VARIABLE_NODE);
-          this->valueMapping[dynamic_cast<VariableNode*>(kv.second[0])->getVar().getName()] = value;
+          assert(kv.second[0]->getType() == triton::ast::STRING_NODE);
+          this->valueMapping[dynamic_cast<StringNode*>(kv.second[0])->getValue()].first = value;
           for(auto* N: kv.second)
             N->init();
           return;
@@ -504,10 +492,30 @@ namespace triton {
       throw triton::exceptions::Ast("AstContext::updateVariable(): Variable to update not found");
     }
 
+    void AstContext::updateSize(const std::string& name, triton::uint32 size) {
+      for (auto& kv: this->astGarbageCollector.getAstVariableNodes()) {
+        if (kv.first == name) {
+          assert(kv.second[0]->getType() == triton::ast::STRING_NODE);
+          this->valueMapping[dynamic_cast<StringNode*>(kv.second[0])->getValue()].second = size;
+          for(auto* N: kv.second)
+            N->init();
+          return;
+        }
+      }
+      throw triton::exceptions::Ast("AstContext::updateSize(): Size to update not found");
+    }
+
+    const triton::uint32& AstContext::getSizeForVariable(const std::string& varName) const {
+      try {
+        return this->valueMapping.at(varName).second;
+      } catch(const std::out_of_range& e) {
+        throw triton::exceptions::Ast("AstContext::getSizeForVariable(): Variable doesn't exists");
+      }
+    }
 
     const triton::uint512& AstContext::getValueForVariable(const std::string& varName) const {
       try {
-        return this->valueMapping.at(varName);
+        return this->valueMapping.at(varName).first;
       } catch(const std::out_of_range& e) {
         throw triton::exceptions::Ast("AstContext::getValueForVariable(): Variable doesn't exists");
       }

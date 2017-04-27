@@ -211,6 +211,7 @@ namespace triton {
 
         //! [**architecture api**] - Sets the concrete value of a symbolic variable.
         void setConcreteSymbolicVariableValue(const triton::engines::symbolic::SymbolicVariable & symVar, const triton::uint512& value);
+        void setConcreteSymbolicVariableSize(const triton::engines::symbolic::SymbolicVariable & symVar);
 
         //! [**architecture api**] - Returns true if the range `[baseAddr:size]` is mapped into the internal memory representation. \sa getConcreteMemoryValue() and getConcreteMemoryAreaValue().
         bool isMemoryMapped(triton::uint64 baseAddr, triton::usize size=1);

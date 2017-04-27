@@ -16,7 +16,6 @@
 #include "triton/astVisitor.hpp"           // for AstVisitor
 #include "triton/cpuSize.hpp"              // for MAX_BITS_SUPPORTED
 #include "triton/symbolicExpression.hpp"   // for SymbolicExpression
-#include "triton/symbolicVariable.hpp"     // for SymbolicVariable
 #include "triton/tritonTypes.hpp"          // for uint512, uint32, sint512
 
 
@@ -2407,6 +2406,7 @@ namespace triton {
 
 
     StringNode::StringNode(std::string value, AstContext& ctxt): AbstractNode(STRING_NODE, ctxt) {
+      ctxt.initVariable(value, 0, 0);
       this->value = value;
       this->init();
     }
@@ -2414,9 +2414,13 @@ namespace triton {
 
     void StringNode::init(void) {
       /* Init attributes */
-      this->eval        = 0;
-      this->size        = 0;
-      this->symbolized  = false;
+      this->size        = ctxt.getSizeForVariable(this->value);
+
+      if(this->size > QWORD_SIZE_BIT)
+        throw triton::exceptions::AstTranslations("StringNode(): Size above 64 bits is not supported yet.");
+
+      this->eval        = ctxt.getValueForVariable(this->value) & this->getBitvectorMask();
+      this->symbolized  = true;
 
       /* Init parents */
       for (std::set<AbstractNode*>::iterator it = this->parents.begin(); it != this->parents.end(); it++)
@@ -2493,50 +2497,6 @@ namespace triton {
       if (s) h = h * s;
       for (triton::uint32 index = 0; index < this->childs.size(); index++)
         h = h * triton::ast::pow(this->childs[index]->hash(deep+1), index+1);
-      return triton::ast::rotl(h, deep);
-    }
-
-
-    /* ====== Variable node */
-
-
-    // WARNING: A variable ast node should not live once the SymbolicVariable is dead
-    VariableNode::VariableNode(triton::engines::symbolic::SymbolicVariable& symVar, AstContext& ctxt)
-      : AbstractNode(VARIABLE_NODE, ctxt),
-        symVar(symVar) {
-      ctxt.initVariable(symVar.getName(), 0);
-      this->init();
-    }
-
-
-    void VariableNode::init(void) {
-      this->size        = this->symVar.getSize();
-      this->eval        = ctxt.getValueForVariable(this->symVar.getName()) & this->getBitvectorMask();
-      this->symbolized  = true;
-
-      /* Init parents */
-      for (std::set<AbstractNode*>::iterator it = this->parents.begin(); it != this->parents.end(); it++)
-        (*it)->init();
-    }
-
-
-    triton::engines::symbolic::SymbolicVariable& VariableNode::getVar() {
-      return this->symVar;
-    }
-
-
-    void VariableNode::accept(AstVisitor& v) {
-      v(*this);
-    }
-
-
-    triton::uint512 VariableNode::hash(triton::uint32 deep) const {
-      triton::uint512 h = this->kind;
-      triton::uint32 index = 1;
-
-      for (char c : this->symVar.getName())
-        h = h ^ triton::ast::pow(c, index++);
-
       return triton::ast::rotl(h, deep);
     }
 
@@ -2712,7 +2672,6 @@ namespace triton {
         case REFERENCE_NODE:            newNode = new(std::nothrow) ReferenceNode(*reinterpret_cast<ReferenceNode*>(node)); break;
         case STRING_NODE:               newNode = new(std::nothrow) StringNode(*reinterpret_cast<StringNode*>(node)); break;
         case SX_NODE:                   newNode = new(std::nothrow) SxNode(*reinterpret_cast<SxNode*>(node)); break;
-        case VARIABLE_NODE:             newNode = new(std::nothrow) VariableNode(*reinterpret_cast<VariableNode*>(node)); break;
         case ZX_NODE:                   newNode = new(std::nothrow) ZxNode(*reinterpret_cast<ZxNode*>(node)); break;
         default:
           throw triton::exceptions::Ast("triton::ast::newInstance(): Invalid kind node.");

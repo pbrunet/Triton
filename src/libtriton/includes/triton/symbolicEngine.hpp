@@ -319,6 +319,9 @@ namespace triton {
 
           //! Sets the concrete value of a symbolic variable.
           void setConcreteSymbolicVariableValue(const SymbolicVariable& symVar, const triton::uint512& value);
+
+          //! Sets the concrete size of a symbolic variable based on current representation.
+          void setConcreteSymbolicVariableSize(const SymbolicVariable& symVar);
       };
 
     /*! @} End of symbolic namespace */
