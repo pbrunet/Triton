@@ -9,7 +9,7 @@
 #include <z3_api.h>                      // for Z3_ast, _Z3_ast
 #include <iosfwd>                        // for ostringstream
 #include <string>                        // for string
-#include <triton/astRepresentation.hpp>  // for AstRepresentation, astRepres...
+#include <triton/astContext.hpp>         // for AstContext
 #include <triton/exceptions.hpp>         // for SolverEngine
 #include <triton/solverEngine.hpp>       // for SolverEngine
 #include "triton/solverModel.hpp"        // for SolverModel
@@ -127,13 +127,14 @@ namespace triton {
         std::ostringstream formula;
         z3::context ctx;
         z3::solver solver(ctx);
-        triton::uint32 representationMode = triton::ast::representations::astRepresentation.getMode();
 
         if (node == nullptr)
           throw triton::exceptions::SolverEngine("SolverEngine::getModels(): node cannot be null.");
 
+        triton::uint32 representationMode = node->getContext().getRepresentationMode();
+
         /* Switch into the SMT mode */
-        triton::ast::representations::astRepresentation.setMode(triton::ast::representations::SMT_REPRESENTATION);
+        node->getContext().setRepresentationMode(triton::ast::representations::SMT_REPRESENTATION);
 
         /* First, set the QF_AUFBV flag  */
         formula << "(set-logic QF_BV)";
@@ -204,7 +205,7 @@ namespace triton {
         }
 
         /* Restore the representation mode */
-        triton::ast::representations::astRepresentation.setMode(representationMode);
+        node->getContext().setRepresentationMode(representationMode);
 
         return ret;
       }

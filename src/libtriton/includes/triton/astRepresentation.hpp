@@ -54,15 +54,12 @@ namespace triton {
           triton::uint32 mode;
 
           //! AstRepresentation interface.
-          triton::ast::representations::AstRepresentationInterface* representations[triton::ast::representations::LAST_REPRESENTATION];
+          std::unique_ptr<triton::ast::representations::AstRepresentationInterface> representations[triton::ast::representations::LAST_REPRESENTATION];
 
 
         public:
           //! Constructor.
           AstRepresentation();
-
-          //! Destructor.
-          virtual ~AstRepresentation();
 
           //! Returns the representation mode.
           triton::uint32 getMode(void) const;
@@ -73,9 +70,6 @@ namespace triton {
           //! Displays the node according to the representation mode.
           std::ostream& print(std::ostream& stream, AbstractNode* node);
       };
-
-      //! The AST representation interface as global for all instances of API.
-      extern triton::ast::representations::AstRepresentation astRepresentation;
 
     /*! @} End of representations namespace */
     };
