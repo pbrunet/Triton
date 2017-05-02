@@ -5,11 +5,11 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/exceptions.hpp>
-#include <triton/pe.hpp>
 #include <triton/pythonObjects.hpp>
 #include <triton/pythonUtils.hpp>
 #include <triton/pythonXFunctions.hpp>
+#include <triton/exceptions.hpp>
+#include <triton/pe.hpp>
 
 
 
@@ -17,6 +17,13 @@
     \brief [**python api**] All information about the Pe python object.
 
 \tableofcontents
+
+- \ref py_PeExportEntry_page
+- \ref py_PeExportTable_page
+- \ref py_PeHeader_page
+- \ref py_PeImportLookup_page
+- \ref py_PeImportTable_page
+- \ref py_PeSectionHeader_page
 
 \section py_Pe_description Description
 <hr>
@@ -240,7 +247,7 @@ namespace triton {
         {"getSectionHeaders",     Pe_getSectionHeaders,    METH_NOARGS,     ""},
         {"getSharedLibraries",    Pe_getSharedLibraries,   METH_NOARGS,     ""},
         {"getSize",               Pe_getSize,              METH_NOARGS,     ""},
-        {nullptr,                 nullptr,                  0,              nullptr}
+        {nullptr,                 nullptr,                 0,               nullptr}
       };
 
 

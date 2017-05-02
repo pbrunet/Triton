@@ -5,11 +5,11 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/elf.hpp>
-#include <triton/exceptions.hpp>
 #include <triton/pythonObjects.hpp>
 #include <triton/pythonUtils.hpp>
 #include <triton/pythonXFunctions.hpp>
+#include <triton/elf.hpp>
+#include <triton/exceptions.hpp>
 
 
 
@@ -17,6 +17,13 @@
     \brief [**python api**] All information about the Elf python object.
 
 \tableofcontents
+
+- \ref py_ElfDynamicTable_page
+- \ref py_ElfHeader_page
+- \ref py_ElfProgramHeader_page
+- \ref py_ElfRelocationTable_page
+- \ref py_ElfSectionHeader_page
+- \ref py_ElfSymbolTable_page
 
 \section py_Elf_description Description
 <hr>

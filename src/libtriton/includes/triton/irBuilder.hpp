@@ -17,6 +17,7 @@
 #include <triton/taintEngine.hpp>
 
 
+
 //! The Triton namespace
 namespace triton {
 /*!
@@ -39,14 +40,14 @@ namespace triton {
         //! Architecture API
         triton::arch::Architecture* architecture;
 
+        //! Modes API
+        const triton::modes::Modes& modes;
+
         //! AST garbage collector API
-        triton::ast::AstGarbageCollector* astGarbageCollector;
+        triton::ast::AstGarbageCollector& astGarbageCollector;
 
         //! Backup AST garbage collector
-        triton::ast::AstGarbageCollector* backupAstGarbageCollector;
-
-        //! Modes API
-        triton::modes::Modes* modes;
+        triton::ast::AstGarbageCollector backupAstGarbageCollector;
 
         //! Symbolic engine API
         triton::engines::symbolic::SymbolicEngine* symbolicEngine;
@@ -67,8 +68,8 @@ namespace triton {
       public:
         //! Constructor.
         IrBuilder(triton::arch::Architecture* architecture,
-                  triton::modes::Modes* modes,
-                  triton::ast::AstGarbageCollector* astGarbageCollector,
+                  const triton::modes::Modes& modes,
+                  triton::ast::AstContext& astCtxt,
                   triton::engines::symbolic::SymbolicEngine* symbolicEngine,
                   triton::engines::taint::TaintEngine* taintEngine);
 

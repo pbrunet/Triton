@@ -5,6 +5,10 @@
 **  This program is under the terms of the BSD License.
 */
 
+/* libTriton */
+#include <triton/pythonUtils.hpp>
+#include <triton/pythonXFunctions.hpp>
+
 #if defined(__unix__) || defined(__APPLE__)
   #include <dlfcn.h>
 #endif
@@ -15,6 +19,7 @@
 #include <cstdio>
 
 #ifndef __STDC_LIB_EXT1__
+//! Secure open as fopen is deprecated on windows but fopen_s is not standard
 int fopen_s(FILE** fd, const char* fn, const char* flags) {
   *fd = fopen(fn, flags);
   if(*fd == 0)
@@ -27,10 +32,6 @@ int fopen_s(FILE** fd, const char* fn, const char* flags) {
 #include <iostream>
 #include <stdexcept>
 #include <string>
-
-/* libTriton */
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
 
 /* pintool */
 #include "bindings.hpp"

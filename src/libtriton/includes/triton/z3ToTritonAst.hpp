@@ -38,8 +38,10 @@ namespace triton {
         //! Symbolic Engine API
         triton::engines::symbolic::SymbolicEngine* symbolicEngine;
 
+        triton::ast::AstContext& astCtxt;
+
         //! Vists and converts
-        triton::ast::AbstractNode* visit(z3::expr const& expr);
+        triton::ast::AbstractNode* visit(const z3::expr& expr);
 
       protected:
         //! Z3's context
@@ -50,16 +52,10 @@ namespace triton {
 
       public:
         //! Constructor.
-        Z3ToTritonAst(triton::engines::symbolic::SymbolicEngine* symbolicEngine);
+        Z3ToTritonAst(triton::engines::symbolic::SymbolicEngine* symbolicEngine, triton::ast::AstContext& ctxt);
 
         //! Constructor.
-        Z3ToTritonAst(triton::engines::symbolic::SymbolicEngine* symbolicEngine, z3::expr& expr);
-
-        //! Constructor by copy.
-        Z3ToTritonAst(const Z3ToTritonAst& copy);
-
-        //! Destructor.
-        virtual ~Z3ToTritonAst();
+        Z3ToTritonAst(triton::engines::symbolic::SymbolicEngine* symbolicEngine, const z3::expr& expr, triton::ast::AstContext& ctxt);
 
         //! Sets the expression.
         void setExpr(z3::expr& expr);

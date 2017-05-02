@@ -5,12 +5,18 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/bitsVector.hpp>
-#include <triton/exceptions.hpp>
 #include <triton/pythonObjects.hpp>
 #include <triton/pythonUtils.hpp>
 #include <triton/pythonXFunctions.hpp>
+#include <triton/bitsVector.hpp>
+#include <triton/exceptions.hpp>
 
+/* setup doctest context
+>>> from triton import ARCH, TritonContext, REG
+>>> ctxt = TritonContext()
+>>> ctxt.setArchitecture(ARCH.X86_64)
+
+*/
 
 
 /*! \page py_Bitvector_page Bitvector
@@ -23,15 +29,17 @@
 
 This object is used to represent a bitvector. Mainly used by \ref py_Register_page and \ref py_MemoryAccess_page.
 
+
 ~~~~~~~~~~~~~{.py}
->>> ah = REG.AH
+>>> ah = ctxt.Register(REG.X86_64.AH)
 >>> bitvector = ah.getBitvector()
 >>> bitvector.getHigh()
-15
+15L
 >>> bitvector.getLow()
-8
+8L
 >>> bitvector.getVectorSize()
-8
+8L
+
 ~~~~~~~~~~~~~
 
 \section Bitvector_py_api Python API - Methods of the Bitvector class
@@ -59,6 +67,7 @@ namespace triton {
         std::cout << std::flush;
         Py_DECREF(self);
       }
+
 
       static PyObject* Bitvector_getHigh(PyObject* self, PyObject* noarg) {
         try {

@@ -9,6 +9,7 @@
 #ifndef TRITON_PYOBJECT_H
 #define TRITON_PYOBJECT_H
 
+#include <triton/pythonBindings.hpp>
 #include <triton/ast.hpp>
 #include <triton/bitsVector.hpp>
 #include <triton/elf.hpp>
@@ -24,7 +25,6 @@
 #include <triton/instruction.hpp>
 #include <triton/memoryAccess.hpp>
 #include <triton/pathConstraint.hpp>
-#include <triton/pythonBindings.hpp>
 #include <triton/register.hpp>
 #include <triton/solverModel.hpp>
 #include <triton/symbolicExpression.hpp>
@@ -38,6 +38,8 @@ namespace triton {
  *  \addtogroup triton
  *  @{
  */
+
+  class API;
 
   //! The Bindings namespace
   namespace bindings {
@@ -130,14 +132,20 @@ namespace triton {
       //! Creates the PathConstraint python class.
       PyObject* PyPathConstraint(const triton::engines::symbolic::PathConstraint& pc);
 
+      //! Creates the new TritonContext python class.
+      PyObject* PyTritonContext();
+
+      //! Creates a TritonContext python class which is a reference to another Context.
+      PyObject* PyTritonContextRef(triton::API& api);
+      
+      //! Creates an AstContext python class.
+      PyObject* PyAstContext(triton::ast::AstContext& ctxt);
+
       //! Creates the Register python class.
       PyObject* PyRegister(const triton::arch::Register& reg);
 
       //! Creates the Register python class.
-      PyObject* PyRegister(const triton::arch::Register& reg, triton::uint512 concreteValue);
-
-      //! Creates the Register python class.
-      PyObject* PyRegister(const triton::arch::Register& reg, triton::uint512 concreteValue, bool isImmutable);
+      PyObject* PyRegister(const triton::arch::RegisterSpec& reg, triton::uint512 concreteValue);
 
       //! Creates the SolverModel python class.
       PyObject* PySolverModel(const triton::engines::solver::SolverModel& model);
@@ -363,7 +371,7 @@ namespace triton {
       //! pyPathConstraint object.
       typedef struct {
         PyObject_HEAD
-        triton::engines::symbolic::PathConstraint* pc;
+        triton::engines::symbolic::PathConstraint* pc; //! Pointer to the cpp path constraints
       } PathConstraint_Object;
 
       //! pyPathConstraint type.
@@ -374,18 +382,40 @@ namespace triton {
       //! pyRegister object.
       typedef struct {
         PyObject_HEAD
-        triton::arch::Register* reg;
+        triton::arch::Register* reg; //! Pointer to the cpp register
       } Register_Object;
 
       //! pyRegister type.
       extern PyTypeObject Register_Type;
+
+      /* TrytonContext ======================================================= */
+
+      //! pyTritonContext object.
+      typedef struct {
+        PyObject_HEAD
+        triton::API* api; //! Pointer to the cpp triton context
+      } TritonContext_Object;
+
+      //! pyRegister type.
+      extern PyTypeObject TritonContextObject_Type;
+
+      /* AstContext ======================================================= */
+
+      //! pyAstContext object.
+      typedef struct {
+        PyObject_HEAD
+        triton::ast::AstContext* ctxt; //!< Pointer to the cpp ast context
+      } AstContext_Object;
+
+      //! pyRegister type.
+      extern PyTypeObject AstContextObject_Type;
 
       /* SolverModel ==================================================== */
 
       //! pySolverModel object.
       typedef struct {
         PyObject_HEAD
-        triton::engines::solver::SolverModel* model;
+        triton::engines::solver::SolverModel* model; //! Pointer to the cpp solver model
       } SolverModel_Object;
 
       //! pySolverModel type.
@@ -540,6 +570,18 @@ namespace triton {
 
 /*! Returns the triton::engines::symbolic::PathConstraint. */
 #define PyPathConstraint_AsPathConstraint(v) (((triton::bindings::python::PathConstraint_Object*)(v))->pc)
+
+/*! Checks if the pyObject is a triton::arch::TritonContext. */
+#define PyTritonContext_Check(v) ((v)->ob_type == &triton::bindings::python::TritonContext_Type)
+
+/*! Returns the triton::arch::TritonContext. */
+#define PyTritonContext_AsTritonContext(v) (((triton::bindings::python::TritonContext_Object*)(v))->api)
+
+/*! Checks if the pyObject is a triton::arch::AstContext. */
+#define PyAstContext_Check(v) ((v)->ob_type == &triton::bindings::python::AstContext_Type)
+
+/*! Returns the triton::arch::AstContext. */
+#define PyAstContext_AsAstContext(v) (((triton::bindings::python::AstContext_Object*)(v))->ctxt)
 
 /*! Checks if the pyObject is a triton::arch::Register. */
 #define PyRegister_Check(v) ((v)->ob_type == &triton::bindings::python::Register_Type)

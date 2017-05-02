@@ -7,10 +7,9 @@
 
 #if defined(__unix__) || defined(__APPLE__)
 
-#include <triton/api.hpp>
-#include <triton/architecture.hpp>
 #include <triton/pythonBindings.hpp>
 #include <triton/pythonUtils.hpp>
+#include <triton/architecture.hpp>
 #include <triton/unix.hpp>
 
 
@@ -362,25 +361,20 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      void initSyscallNamespace(void) {
-        if (!triton::bindings::python::initialized)
-          return;
+      void initSyscall64Namespace(PyObject* syscallsDict64) {
+        PyDict_Clear(syscallsDict64);
 
-        PyDict_Clear(triton::bindings::python::syscallsDict);
+        for (triton::uint32 i = 0; i < triton::os::unix::NB_SYSCALL64; ++i)
+          PyDict_SetItemString(syscallsDict64, triton::os::unix::syscallmap64[i], PyLong_FromUint32(i));
+      }
 
-        switch (api.getArchitecture()) {
-          case triton::arch::ARCH_X86_64:
-            for (triton::uint32 i = 0; i < triton::os::unix::NB_SYSCALL64; ++i)
-              PyDict_SetItemString(triton::bindings::python::syscallsDict, triton::os::unix::syscallmap64[i], PyLong_FromUint32(i));
-            break;
+      void initSyscall32Namespace(PyObject* syscallsDict32) {
+        PyDict_Clear(syscallsDict32);
 
-          #if defined(__unix__)
-          case triton::arch::ARCH_X86:
-            for (triton::uint32 i = 0; i < triton::os::unix::NB_SYSCALL32; ++i)
-              PyDict_SetItemString(triton::bindings::python::syscallsDict, triton::os::unix::syscallmap32[i], PyLong_FromUint32(i));
-            break;
-          #endif
-        } /* switch */
+        #if defined(__unix__)
+        for (triton::uint32 i = 0; i < triton::os::unix::NB_SYSCALL32; ++i)
+          PyDict_SetItemString(syscallsDict32, triton::os::unix::syscallmap32[i], PyLong_FromUint32(i));
+        #endif
       }
 
     }; /* python namespace */

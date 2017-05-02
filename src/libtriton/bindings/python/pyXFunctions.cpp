@@ -5,8 +5,8 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <iostream>
 #include <triton/pythonXFunctions.hpp>
+#include <iostream>
 
 
 
@@ -14,7 +14,7 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      static void notEnoughMemory(void) {
+      static inline void notEnoughMemory(void) {
         std::cerr << "[ERROR] Not enough memory for allocation" << std::endl;
         exit(-1);
       }

@@ -23,6 +23,8 @@ namespace triton {
  *  @{
  */
 
+  class API;
+
   //! The Callbacks namespace
   namespace callbacks {
   /*!
@@ -40,24 +42,24 @@ namespace triton {
 
     /*! \brief The prototype of a GET_CONCRETE_MEMORY_VALUE callback.
      *
-     * \description The callback takes as unique argument a memory access. Callbacks will
+     * \details The callback takes as unique argument a memory access. Callbacks will
      * be called each time that the Triton library will need a concrete memory value.
      */
-    using getConcreteMemoryValueCallback = ComparableFunctor<void(triton::arch::MemoryAccess&)>;
+    using getConcreteMemoryValueCallback = ComparableFunctor<void(triton::API&, triton::arch::MemoryAccess&)>;
 
     /*! \brief The prototype of a GET_CONCRETE_REGISTER_VALUE callback.
      *
-     * \description The callback takes as unique argument a register. Callbacks will be
+     * \details The callback takes as unique argument a register. Callbacks will be
      * called each time that the Triton library will need a concrete register value.
      */
-    using getConcreteRegisterValueCallback = ComparableFunctor<void(triton::arch::Register&)>;
+    using getConcreteRegisterValueCallback = ComparableFunctor<void(triton::API&, triton::arch::RegisterSpec&)>;
 
     /*! \brief The prototype of a SYMBOLIC_SIMPLIFICATION callback.
      *
-     * \description The callback takes as uniq argument a triton::ast::AbstractNode and must return a valid triton::ast::AbstractNode.
+     * \details The callback takes as uniq argument a triton::ast::AbstractNode and must return a valid triton::ast::AbstractNode.
      * The returned node is used as assignment. See also the page about \ref SMT_simplification_page for more information.
      */
-    using symbolicSimplificationCallback = ComparableFunctor<triton::ast::AbstractNode*(triton::ast::AbstractNode*)>;
+    using symbolicSimplificationCallback = ComparableFunctor<triton::ast::AbstractNode*(triton::API&, triton::ast::AbstractNode*)>;
 
     //! \class Callbacks
     /*! \brief The callbacks class */
@@ -81,16 +83,10 @@ namespace triton {
         bool isDefined;
 
         //! Constructor.
-        Callbacks();
-
-        //! Constructor.
-        Callbacks(const Callbacks& copy);
+        Callbacks(triton::API& api);
 
         //! Destructor.
         virtual ~Callbacks();
-
-        //! Copies a Callbacks class
-        void operator=(const Callbacks& copy);
 
         //! Adds a GET_CONCRETE_MEMORY_VALUE callback.
         void addCallback(triton::callbacks::getConcreteMemoryValueCallback cb);
@@ -120,7 +116,11 @@ namespace triton {
         void processCallbacks(triton::callbacks::callback_e kind, const triton::arch::MemoryAccess& mem) const;
 
         //! Processes callbacks according to the kind and the C++ polymorphism.
-        void processCallbacks(triton::callbacks::callback_e kind, const triton::arch::Register& reg) const;
+        void processCallbacks(triton::callbacks::callback_e kind, const triton::arch::RegisterSpec& reg) const;
+
+      private:
+        //! Reference to the API handling these callbacks
+        triton::API& api;
     };
 
   /*! @} End of callbacks namespace */

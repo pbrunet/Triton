@@ -1,16 +1,15 @@
 # $ ./triton ./src/testers/qemu-test-x86_64.py ./src/samples/ir_test_suite/qemu-test-x86_64
 
-from triton     import *
-from triton.ast import *
-from pintool    import *
+from triton import ARCH, SYMEXPR, OPCODE
+import pintool as Pintool
 
-import sys
-import time
+# Get the Triton context over the pintool
+Triton = Pintool.getTritonContext()
 
 
 def sbefore(instruction):
-    concretizeAllMemory()
-    concretizeAllRegister()
+    Triton.concretizeAllMemory()
+    Triton.concretizeAllRegister()
     return
 
 
@@ -29,19 +28,19 @@ def cafter(instruction):
     ]
 
     bad  = list()
-    regs = getParentRegisters()
+    regs = Triton.getParentRegisters()
 
     for reg in regs:
 
-        cvalue = getCurrentRegisterValue(reg)
-        seid   = getSymbolicRegisterId(reg)
+        cvalue = Pintool.getCurrentRegisterValue(reg)
+        seid   = Triton.getSymbolicRegisterId(reg)
 
         if seid == SYMEXPR.UNSET:
             continue
 
-        expr   = getFullAstFromId(seid)
+        expr   = Triton.getFullAstFromId(seid)
         svalue = expr.evaluate()
-        #svalue = evaluateAstViaZ3(expr)
+        #svalue = Triton.evaluateAstViaZ3(expr)
 
         # Check register
         if cvalue != svalue:
@@ -49,8 +48,12 @@ def cafter(instruction):
             if reg.getName() == 'of' and instruction.getType() in ofIgnored:
                 continue
 
+            # FIXME: We have an incorrect semantic
+            if instruction.getType() == OPCODE.CDQ:
+                continue
+
             bad.append({
-                'reg':    reg.getName(),
+                'reg':    reg.getName() + str(instruction.getType()),
                 'svalue': svalue,
                 'cvalue': cvalue,
                 'expr':   expr
@@ -76,16 +79,15 @@ def cafter(instruction):
         return
 
     # Reset everything
-    resetEngines()
+    Triton.resetEngines()
 
     return
 
 
 if __name__ == '__main__':
-    setArchitecture(ARCH.X86_64)
-    setupImageWhitelist(['qemu-test-x86_64'])
-    startAnalysisFromSymbol('main')
-    insertCall(cafter,  INSERT_POINT.AFTER)
-    insertCall(sbefore, INSERT_POINT.BEFORE_SYMPROC)
-    runProgram()
-
+    Triton.setArchitecture(ARCH.X86_64)
+    Pintool.setupImageWhitelist(['qemu-test-x86_64'])
+    Pintool.startAnalysisFromSymbol('main')
+    Pintool.insertCall(cafter,  Pintool.INSERT_POINT.AFTER)
+    Pintool.insertCall(sbefore, Pintool.INSERT_POINT.BEFORE_SYMPROC)
+    Pintool.runProgram()

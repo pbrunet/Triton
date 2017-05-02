@@ -5,13 +5,21 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/exceptions.hpp>
 #include <triton/pythonObjects.hpp>
 #include <triton/pythonUtils.hpp>
 #include <triton/pythonXFunctions.hpp>
+#include <triton/exceptions.hpp>
 #include <triton/register.hpp>
 
+/* setup doctest
+>>> from triton import ARCH, TritonContext, Instruction, REG
+>>> ctxt = TritonContext()
+>>> ctxt.setArchitecture(ARCH.X86_64)
 
+>>> inst = Instruction("\x8A\xA4\x4A\x00\x01\x00\x00")
+>>> inst.setAddress(0x40000)
+
+*/
 
 /*! \page py_Register_page Register
     \brief [**python api**] All information about the Register python object.
@@ -23,12 +31,14 @@
 
 This object is used to represent a register operand according to the CPU architecture.
 
+
 \subsection py_Register_example Example
 
 ~~~~~~~~~~~~~{.py}
->>> processing(inst)
+>>> ctxt.processing(inst)
+True
 >>> print inst
-40000: mov ah, byte ptr [rdx + rcx*2 + 0x100]
+0x40000: mov ah, byte ptr [rdx + rcx*2 + 0x100]
 
 >>> op0 = inst.getOperands()[0]
 >>> print op0
@@ -38,19 +48,20 @@ ah:8 bv[15..8]
 'ah'
 
 >>> op0.getSize()
-1
+1L
 
 >>> op0.getBitSize()
-8
+8L
 
->>> op0.getParent().getName()
+>>> ctxt.getParentRegister(op0).getName()
 'rax'
+
 ~~~~~~~~~~~~~
 
 \subsection py_Register_constructor Constructor
 
 ~~~~~~~~~~~~~{.py}
->>> ah = Register(REG.AH, 0x18)
+>>> ah = ctxt.Register(REG.X86_64.AH, 0x18)
 >>> print ah
 ah:8 bv[15..8]
 
@@ -60,9 +71,9 @@ ah:8 bv[15..8]
 >>> print hex(ah.getConcreteValue())
 0x18L
 
->>> regId = 1
->>> Register(regId)
+>>> print ctxt.Register(REG.X86_64.RAX)
 rax:64 bv[63..0]
+
 ~~~~~~~~~~~~~
 
 \section Register_py_api Python API - Methods of the Register class
@@ -81,9 +92,6 @@ Returns the concrete value assigned to this register operand.
 - <b>string getName(void)</b><br>
 Returns the name of the register.<br>
 e.g: `rbx`
-
-- <b>\ref py_Register_page getParent(void)</b><br>
-Returns the parent register.
 
 - <b>integer getSize(void)</b><br>
 Returns the size (in bytes) of the register.<br>
@@ -147,17 +155,6 @@ namespace triton {
       static PyObject* Register_getName(PyObject* self, PyObject* noarg) {
         try {
           return Py_BuildValue("s", PyRegister_AsRegister(self)->getName().c_str());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_getParent(PyObject* self, PyObject* noarg) {
-        try {
-          triton::arch::Register parent = PyRegister_AsRegister(self)->getParent();
-          return PyRegister(parent);
         }
         catch (const triton::exceptions::Exception& e) {
           return PyErr_Format(PyExc_TypeError, "%s", e.what());
@@ -291,7 +288,6 @@ namespace triton {
         {"getBitvector",      Register_getBitvector,     METH_NOARGS,    ""},
         {"getConcreteValue",  Register_getConcreteValue, METH_NOARGS,    ""},
         {"getName",           Register_getName,          METH_NOARGS,    ""},
-        {"getParent",         Register_getParent,        METH_NOARGS,    ""},
         {"getSize",           Register_getSize,          METH_NOARGS,    ""},
         {"getType",           Register_getType,          METH_NOARGS,    ""},
         {"isOverlapWith",     Register_isOverlapWith,    METH_O,         ""},
@@ -364,16 +360,11 @@ namespace triton {
       }
 
 
-      PyObject* PyRegister(const triton::arch::Register& reg, triton::uint512 concreteValue) {
-        return PyRegister(reg, concreteValue, false);
-      }
-
-
-      PyObject* PyRegister(const triton::arch::Register& reg, triton::uint512 concreteValue, bool isImmutable) {
+      PyObject* PyRegister(const triton::arch::RegisterSpec& reg, triton::uint512 concreteValue) {
         PyType_Ready(&Register_Type);
         Register_Object* object = PyObject_NEW(Register_Object, &Register_Type);
         if (object != NULL)
-          object->reg = new triton::arch::Register(reg.getId(), concreteValue, isImmutable);
+          object->reg = new triton::arch::Register(reg, concreteValue);
 
         return (PyObject*)object;
       }
