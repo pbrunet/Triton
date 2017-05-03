@@ -106,7 +106,7 @@ namespace triton {
         bool equalTo(AbstractNode*) const;
 
         //! Evaluates the tree.
-        triton::uint512 evaluate(void) const;
+        virtual triton::uint512 evaluate(void) const;
 
         //! Returns the childs of the node.
         std::vector<AbstractNode*>& getChilds(void);
