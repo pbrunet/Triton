@@ -167,7 +167,7 @@ namespace triton {
           break;
         }
 
-        //case Z3_OP_BUDIV_I:
+        case Z3_OP_BUDIV_I:
         case Z3_OP_BUDIV: {
           if (expr.num_args() < 2)
             throw triton::exceptions::AstTranslations("Z3ToTritonAst::visit(): Z3_OP_BUDIV must contain at least two arguments.");
@@ -187,7 +187,7 @@ namespace triton {
           break;
         }
 
-        //case Z3_OP_BUREM_I:
+        case Z3_OP_BUREM_I:
         case Z3_OP_BUREM: {
           if (expr.num_args() < 2)
             throw triton::exceptions::AstTranslations("Z3ToTritonAst::visit(): Z3_OP_BUREM must contain at least two arguments.");
