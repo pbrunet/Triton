@@ -411,6 +411,10 @@ namespace triton {
     void TritonToZ3Ast::operator()(triton::ast::LandNode& e) {
       Z3Result op1      = this->eval(*e.getChilds()[0]);
       Z3Result op2      = this->eval(*e.getChilds()[1]);
+      if(!op1.getExpr().get_sort().is_bool() || ! op2.getExpr().get_sort().is_bool()) {
+        throw triton::exceptions::AstTranslations("TritonToZ3Ast::LandNode(): Land can be apply only on bool value.");
+      }
+
       Z3_ast ops[]      = {op1.getExpr(), op2.getExpr()};
       z3::expr newexpr  = to_expr(this->result.getContext(), Z3_mk_and(this->result.getContext(), 2, ops));
 
@@ -429,6 +433,9 @@ namespace triton {
 
     void TritonToZ3Ast::operator()(triton::ast::LnotNode& e) {
       Z3Result op1      = this->eval(*e.getChilds()[0]);
+      if(!op1.getExpr().get_sort().is_bool()) {
+        throw triton::exceptions::AstTranslations("TritonToZ3Ast::LnotNode(): Lnot can be apply only on bool value.");
+      }
       z3::expr newexpr  = to_expr(this->result.getContext(), Z3_mk_not(this->result.getContext(), op1.getExpr()));
 
       this->result.setExpr(newexpr);
@@ -438,6 +445,10 @@ namespace triton {
     void TritonToZ3Ast::operator()(triton::ast::LorNode& e) {
       Z3Result op1      = this->eval(*e.getChilds()[0]);
       Z3Result op2      = this->eval(*e.getChilds()[1]);
+
+      if(!op1.getExpr().get_sort().is_bool() || ! op2.getExpr().get_sort().is_bool()) {
+        throw triton::exceptions::AstTranslations("TritonToZ3Ast::LorNode(): Lor can be apply only on bool value.");
+      }
       Z3_ast ops[]      = {op1.getExpr(), op2.getExpr()};
       z3::expr newexpr  = to_expr(this->result.getContext(), Z3_mk_or(this->result.getContext(), 2, ops));
 
