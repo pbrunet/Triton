@@ -76,7 +76,6 @@ set(LIBTRITON_SOURCE_FILES
     engines/symbolic/symbolicVariable.cpp
     engines/taint/taintEngine.cpp
     modes/modes.cpp
-    os/unix/syscallNumberToString.cpp
     utils/coreUtils.cpp
 )
 

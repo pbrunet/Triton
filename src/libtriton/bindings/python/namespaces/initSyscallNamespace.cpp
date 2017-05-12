@@ -10,7 +10,7 @@
 #include <triton/pythonBindings.hpp>
 #include <triton/pythonUtils.hpp>
 #include <triton/architecture.hpp>
-#include <triton/unix.hpp>
+#include <triton/syscalls.hpp>
 
 
 
