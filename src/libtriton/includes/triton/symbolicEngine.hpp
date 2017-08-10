@@ -57,6 +57,9 @@ namespace triton {
           public triton::engines::symbolic::PathManager {
 
         protected:
+          //! Reference to the context managing ast nodes.
+          triton::ast::AstContext& astCtxt;
+
           //! Defines if the engine is enable or disable.
           bool enableFlag;
 
@@ -71,7 +74,7 @@ namespace triton {
 
           /*! \brief The map of symbolic variables
            *
-           * \description
+           * \details
            * **item1**: variable id<br>
            * **item2**: symbolic variable
            */
@@ -79,7 +82,7 @@ namespace triton {
 
           /*! \brief The map of symbolic expressions
            *
-           * \description
+           * \details
            * **item1**: symbolic reference id<br>
            * **item2**: symbolic expression
            */
@@ -87,7 +90,7 @@ namespace triton {
 
           /*! \brief map of address -> symbolic expression
            *
-           * \description
+           * \details
            * **item1**: memory address<br>
            * **item2**: symbolic reference id
            */
@@ -95,9 +98,9 @@ namespace triton {
 
           /*! \brief map of <address:size> -> symbolic expression.
            *
-           * \description
+           * \details
            * **item1**: <addr:size><br>
-           * **item2**: symbolic reference id
+           * **item2**: AST node
            */
           std::map<std::pair<triton::uint64, triton::uint32>, triton::ast::AbstractNode*> alignedMemoryReference;
 
@@ -109,7 +112,7 @@ namespace triton {
           triton::callbacks::Callbacks* callbacks;
 
           //! Modes API.
-          triton::modes::Modes* modes;
+          const triton::modes::Modes& modes;
 
           //! Defines if this instance is used as a backup.
           bool backupFlag;
@@ -120,7 +123,8 @@ namespace triton {
         public:
           //! Constructor. If you use this class as backup or copy you should define the `isBackup` flag as true.
           SymbolicEngine(triton::arch::Architecture* architecture,
-                         triton::modes::Modes* modes,
+                         const triton::modes::Modes& modes,
+                         triton::ast::AstContext& astCtxt,
                          triton::callbacks::Callbacks* callbacks=nullptr,
                          bool isBackup=false);
 
@@ -182,7 +186,7 @@ namespace triton {
           SymbolicExpression* getSymbolicExpressionFromId(triton::usize symExprId) const;
 
           //! Returns the map of symbolic registers defined.
-          std::map<triton::arch::Register, SymbolicExpression*> getSymbolicRegisters(void) const;
+          std::map<triton::arch::registers_e, SymbolicExpression*> getSymbolicRegisters(void) const;
 
           //! Returns the map (addr:expr) of all symbolic memory defined.
           std::map<triton::uint64, SymbolicExpression*> getSymbolicMemory(void) const;
@@ -203,40 +207,40 @@ namespace triton {
           triton::uint512 getSymbolicRegisterValue(const triton::arch::Register& reg);
 
           //! Returns a symbolic operand based on the abstract wrapper.
-          triton::ast::AbstractNode* buildSymbolicOperand(triton::arch::OperandWrapper& op);
+          triton::ast::AbstractNode* buildSymbolicOperand(const triton::arch::OperandWrapper& op);
 
           //! Returns a symbolic operand based on the abstract wrapper.
-          triton::ast::AbstractNode* buildSymbolicOperand(triton::arch::Instruction& inst, triton::arch::OperandWrapper& op);
+          triton::ast::AbstractNode* buildSymbolicOperand(triton::arch::Instruction& inst, const triton::arch::OperandWrapper& op);
 
           //! Returns a symbolic immediate.
           triton::ast::AbstractNode* buildSymbolicImmediate(const triton::arch::Immediate& imm);
 
           //! Returns a symbolic immediate and defines the immediate as input of the instruction.
-          triton::ast::AbstractNode* buildSymbolicImmediate(triton::arch::Instruction& inst, triton::arch::Immediate& imm);
+          triton::ast::AbstractNode* buildSymbolicImmediate(triton::arch::Instruction& inst, const triton::arch::Immediate& imm);
 
           //! Returns a symbolic memory.
           triton::ast::AbstractNode* buildSymbolicMemory(const triton::arch::MemoryAccess& mem);
 
           //! Returns a symbolic memory and defines the memory as input of the instruction.
-          triton::ast::AbstractNode* buildSymbolicMemory(triton::arch::Instruction& inst, triton::arch::MemoryAccess& mem);
+          triton::ast::AbstractNode* buildSymbolicMemory(triton::arch::Instruction& inst, const triton::arch::MemoryAccess& mem);
 
           //! Returns a symbolic register.
           triton::ast::AbstractNode* buildSymbolicRegister(const triton::arch::Register& reg);
 
           //! Returns a symbolic register and defines the register as input of the instruction.
-          triton::ast::AbstractNode* buildSymbolicRegister(triton::arch::Instruction& inst, triton::arch::Register& reg);
+          triton::ast::AbstractNode* buildSymbolicRegister(triton::arch::Instruction& inst, const triton::arch::Register& reg);
 
           //! Returns the new symbolic abstract expression and links this expression to the instruction.
-          SymbolicExpression* createSymbolicExpression(triton::arch::Instruction& inst, triton::ast::AbstractNode* node, triton::arch::OperandWrapper& dst, const std::string& comment="");
+          SymbolicExpression* createSymbolicExpression(triton::arch::Instruction& inst, triton::ast::AbstractNode* node, const triton::arch::OperandWrapper& dst, const std::string& comment="");
 
           //! Returns the new symbolic memory expression expression and links this expression to the instruction.
-          SymbolicExpression* createSymbolicMemoryExpression(triton::arch::Instruction& inst, triton::ast::AbstractNode* node, triton::arch::MemoryAccess& mem, const std::string& comment="");
+          SymbolicExpression* createSymbolicMemoryExpression(triton::arch::Instruction& inst, triton::ast::AbstractNode* node, const triton::arch::MemoryAccess& mem, const std::string& comment="");
 
           //! Returns the new symbolic register expression expression and links this expression to the instruction.
-          SymbolicExpression* createSymbolicRegisterExpression(triton::arch::Instruction& inst, triton::ast::AbstractNode* node, triton::arch::Register& reg, const std::string& comment="");
+          SymbolicExpression* createSymbolicRegisterExpression(triton::arch::Instruction& inst, triton::ast::AbstractNode* node, const triton::arch::Register& reg, const std::string& comment="");
 
           //! Returns the new symbolic flag expression expression and links this expression to the instruction.
-          SymbolicExpression* createSymbolicFlagExpression(triton::arch::Instruction& inst, triton::ast::AbstractNode* node, triton::arch::Register& flag, const std::string& comment="");
+          SymbolicExpression* createSymbolicFlagExpression(triton::arch::Instruction& inst, triton::ast::AbstractNode* node, const triton::arch::Register& flag, const std::string& comment="");
 
           //! Returns the new symbolic volatile expression expression and links this expression to the instruction.
           SymbolicExpression* createSymbolicVolatileExpression(triton::arch::Instruction& inst, triton::ast::AbstractNode* node, const std::string& comment="");
@@ -312,6 +316,9 @@ namespace triton {
 
           //! Initializes the memory access AST (LOAD and STORE).
           void initLeaAst(triton::arch::MemoryAccess& mem, bool force=false);
+
+          //! Sets the concrete value of a symbolic variable.
+          void setConcreteSymbolicVariableValue(const SymbolicVariable& symVar, const triton::uint512& value);
       };
 
     /*! @} End of symbolic namespace */

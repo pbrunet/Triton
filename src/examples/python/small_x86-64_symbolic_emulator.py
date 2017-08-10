@@ -46,14 +46,13 @@
 ##  [Triton] Emulation done
 ##
 
-import os
 import sys
-import struct
-import ctypes
 import string
 import random
 
-from triton import *
+from triton import TritonContext, ARCH, MemoryAccess, CPUSIZE, Instruction, OPCODE, MODE
+
+Triton = TritonContext()
 
 
 # Script options
@@ -80,8 +79,8 @@ def getMemoryString(addr):
     s = str()
     index = 0
 
-    while getConcreteMemoryValue(addr+index):
-        c = chr(getConcreteMemoryValue(addr+index))
+    while Triton.getConcreteMemoryValue(addr+index):
+        c = chr(Triton.getConcreteMemoryValue(addr+index))
         if c not in string.printable: c = ""
         s += c
         index  += 1
@@ -115,7 +114,7 @@ def __malloc():
     debug('malloc hooked')
 
     # Get arguments
-    size = getConcreteRegisterValue(REG.RDI)
+    size = Triton.getConcreteRegisterValue(Triton.registers.rdi)
 
     if size > mallocChunkSize:
         debug('malloc failed: size too big')
@@ -137,14 +136,14 @@ def __signal():
     debug('signal hooked')
 
     # Get arguments
-    signal  = getConcreteRegisterValue(REG.RDI)
-    handler = getConcreteRegisterValue(REG.RSI)
+    signal  = Triton.getConcreteRegisterValue(Triton.registers.rdi)
+    handler = Triton.getConcreteRegisterValue(Triton.registers.rsi)
 
     global sigHandlers
     sigHandlers.update({signal: handler})
 
     # Return value (void)
-    return getConcreteRegisterValue(REG.RAX)
+    return Triton.getConcreteRegisterValue(Triton.registers.rax)
 
 
 # Simulate the raise() function
@@ -152,10 +151,10 @@ def __raise():
     debug('raise hooked')
 
     # Get arguments
-    signal  = getConcreteRegisterValue(REG.RDI)
+    signal  = Triton.getConcreteRegisterValue(Triton.registers.rdi)
     handler = sigHandlers[signal]
 
-    processing(Instruction("\x6A\x00")) # push 0
+    Triton.processing(Instruction("\x6A\x00")) # push 0
     emulate(handler)
 
     # Return value
@@ -167,7 +166,7 @@ def __strlen():
     debug('strlen hooked')
 
     # Get arguments
-    arg1 = getMemoryString(getConcreteRegisterValue(REG.RDI))
+    arg1 = getMemoryString(Triton.getConcreteRegisterValue(Triton.registers.rdi))
 
     # Return value
     return len(arg1)
@@ -178,9 +177,9 @@ def __strtoul():
     debug('strtoul hooked')
 
     # Get arguments
-    nptr   = getMemoryString(getConcreteRegisterValue(REG.RDI))
-    endptr = getConcreteRegisterValue(REG.RSI)
-    base   = getConcreteRegisterValue(REG.RDX)
+    nptr   = getMemoryString(Triton.getConcreteRegisterValue(Triton.registers.rdi))
+    endptr = Triton.getConcreteRegisterValue(Triton.registers.rsi)
+    base   = Triton.getConcreteRegisterValue(Triton.registers.rdx)
 
     # Return value
     return long(nptr, base)
@@ -191,12 +190,12 @@ def __printf():
     debug('printf hooked')
 
     # Get arguments
-    arg1   = getFormatString(getConcreteRegisterValue(REG.RDI))
-    arg2   = getConcreteRegisterValue(REG.RSI)
-    arg3   = getConcreteRegisterValue(REG.RDX)
-    arg4   = getConcreteRegisterValue(REG.RCX)
-    arg5   = getConcreteRegisterValue(REG.R8)
-    arg6   = getConcreteRegisterValue(REG.R9)
+    arg1   = getFormatString(Triton.getConcreteRegisterValue(Triton.registers.rdi))
+    arg2   = Triton.getConcreteRegisterValue(Triton.registers.rsi)
+    arg3   = Triton.getConcreteRegisterValue(Triton.registers.rdx)
+    arg4   = Triton.getConcreteRegisterValue(Triton.registers.rcx)
+    arg5   = Triton.getConcreteRegisterValue(Triton.registers.r8)
+    arg6   = Triton.getConcreteRegisterValue(Triton.registers.r9)
     nbArgs = arg1.count("{")
     args   = [arg2, arg3, arg4, arg5, arg6][:nbArgs]
     s      = arg1.format(*args)
@@ -212,7 +211,7 @@ def __putchar():
     debug('putchar hooked')
 
     # Get arguments
-    arg1 = getConcreteRegisterValue(REG.RDI)
+    arg1 = Triton.getConcreteRegisterValue(Triton.registers.rdi)
     sys.stdout.write(chr(arg1) + '\n')
 
     # Return value
@@ -224,7 +223,7 @@ def __puts():
     debug('puts hooked')
 
     # Get arguments
-    arg1 = getMemoryString(getConcreteRegisterValue(REG.RDI))
+    arg1 = getMemoryString(Triton.getConcreteRegisterValue(Triton.registers.rdi))
     sys.stdout.write(arg1 + '\n')
 
     # Return value
@@ -235,19 +234,19 @@ def __libc_start_main():
     debug('__libc_start_main hooked')
 
     # Get arguments
-    main = getConcreteRegisterValue(REG.RDI)
+    main = Triton.getConcreteRegisterValue(Triton.registers.rdi)
 
     # Push the return value to jump into the main() function
-    concretizeRegister(REG.RSP)
-    setConcreteRegisterValue(Register(REG.RSP, getConcreteRegisterValue(REG.RSP)-CPUSIZE.QWORD))
+    Triton.concretizeRegister(Triton.registers.rsp)
+    Triton.setConcreteRegisterValue(Triton.registers.rsp, Triton.getConcreteRegisterValue(Triton.registers.rsp)-CPUSIZE.QWORD)
 
-    ret2main = MemoryAccess(getConcreteRegisterValue(REG.RSP), CPUSIZE.QWORD, main)
-    concretizeMemory(ret2main)
-    setConcreteMemoryValue(ret2main)
+    ret2main = MemoryAccess(Triton.getConcreteRegisterValue(Triton.registers.rsp), CPUSIZE.QWORD)
+    Triton.concretizeMemory(ret2main)
+    Triton.setConcreteMemoryValue(ret2main, main)
 
     # Setup argc / argv
-    concretizeRegister(REG.RDI)
-    concretizeRegister(REG.RSI)
+    Triton.concretizeRegister(Triton.registers.rdi)
+    Triton.concretizeRegister(Triton.registers.rsi)
 
     # Setup target argvs
     argvs = [sys.argv[1]] + sys.argv[2:]
@@ -259,11 +258,11 @@ def __libc_start_main():
     index = 0
     for argv in argvs:
         addrs.append(base)
-        setConcreteMemoryAreaValue(base, argv+'\x00')
+        Triton.setConcreteMemoryAreaValue(base, argv+'\x00')
 
         # Tainting argvs
         for i in range(len(argv)):
-            taintMemory(base + i)
+            Triton.taintMemory(base + i)
 
         base += len(argv)+1
         debug('argv[%d] = %s' %(index, argv))
@@ -272,11 +271,11 @@ def __libc_start_main():
     argc = len(argvs)
     argv = base
     for addr in addrs:
-        setConcreteMemoryValue(MemoryAccess(base, CPUSIZE.QWORD, addr))
+        Triton.setConcreteMemoryValue(MemoryAccess(base, CPUSIZE.QWORD), addr)
         base += CPUSIZE.QWORD
 
-    setConcreteRegisterValue(Register(REG.RDI, argc))
-    setConcreteRegisterValue(Register(REG.RSI, argv))
+    Triton.setConcreteRegisterValue(Triton.registers.rdi, argc)
+    Triton.setConcreteRegisterValue(Triton.registers.rsi, argv)
 
     return 0
 
@@ -286,7 +285,7 @@ def __atoi():
     debug('atoi hooked')
 
     # Get arguments
-    arg1 = getMemoryString(getConcreteRegisterValue(REG.RDI))
+    arg1 = getMemoryString(Triton.getConcreteRegisterValue(Triton.registers.rdi))
 
     # Return value
     return int(arg1)
@@ -297,7 +296,7 @@ def __atol():
     debug('atol hooked')
 
     # Get arguments
-    arg1 = getMemoryString(getConcreteRegisterValue(REG.RDI))
+    arg1 = getMemoryString(Triton.getConcreteRegisterValue(Triton.registers.rdi))
 
     # Return value
     return long(arg1)
@@ -308,7 +307,7 @@ def __atoll():
     debug('atoll hooked')
 
     # Get arguments
-    arg1 = getMemoryString(getConcreteRegisterValue(REG.RDI))
+    arg1 = getMemoryString(Triton.getConcreteRegisterValue(Triton.registers.rdi))
 
     # Return value
     return long(arg1)
@@ -332,24 +331,24 @@ customRelocation = [
 
 
 def hookingHandler():
-    pc = getConcreteRegisterValue(REG.RIP)
+    pc = Triton.getConcreteRegisterValue(Triton.registers.rip)
     for rel in customRelocation:
         if rel[2] == pc:
             # Emulate the routine and the return value
             ret_value = rel[1]()
-            concretizeRegister(REG.RAX)
-            setConcreteRegisterValue(Register(REG.RAX, ret_value))
+            Triton.concretizeRegister(Triton.registers.rax)
+            Triton.setConcreteRegisterValue(Triton.registers.rax, ret_value)
 
             # Get the return address
-            ret_addr = getConcreteMemoryValue(MemoryAccess(getConcreteRegisterValue(REG.RSP), CPUSIZE.QWORD))
+            ret_addr = Triton.getConcreteMemoryValue(MemoryAccess(Triton.getConcreteRegisterValue(Triton.registers.rsp), CPUSIZE.QWORD))
 
             # Hijack RIP to skip the call
-            concretizeRegister(REG.RIP)
-            setConcreteRegisterValue(Register(REG.RIP, ret_addr))
+            Triton.concretizeRegister(Triton.registers.rip)
+            Triton.setConcreteRegisterValue(Triton.registers.rip, ret_addr)
 
             # Restore RSP (simulate the ret)
-            concretizeRegister(REG.RSP)
-            setConcreteRegisterValue(Register(REG.RSP, getConcreteRegisterValue(REG.RSP)+CPUSIZE.QWORD))
+            Triton.concretizeRegister(Triton.registers.rsp)
+            Triton.setConcreteRegisterValue(Triton.registers.rsp, Triton.getConcreteRegisterValue(Triton.registers.rsp)+CPUSIZE.QWORD)
     return
 
 
@@ -357,16 +356,16 @@ def hookingHandler():
 def emulate(pc):
     count = 0
     while pc:
-        # Fetch opcodes
-        opcodes = getConcreteMemoryAreaValue(pc, 16)
+        # Fetch opcode
+        opcode = Triton.getConcreteMemoryAreaValue(pc, 16)
 
         # Create the Triton instruction
         instruction = Instruction()
-        instruction.setOpcodes(opcodes)
+        instruction.setOpcode(opcode)
         instruction.setAddress(pc)
 
         # Process
-        processing(instruction)
+        Triton.processing(instruction)
         count += 1
 
         #print instruction
@@ -378,23 +377,23 @@ def emulate(pc):
         hookingHandler()
 
         # Next
-        pc = getConcreteRegisterValue(REG.RIP)
+        pc = Triton.getConcreteRegisterValue(Triton.registers.rip)
 
     debug('Instruction executed: %d' %(count))
     return
 
 
-def loadBinary(binary):
+def loadBinary(path):
+    import lief
     # Map the binary into the memory
-    raw = binary.getRaw()
-    phdrs = binary.getProgramHeaders()
+    binary = lief.parse(path)
+    phdrs  = binary.segments
     for phdr in phdrs:
-        offset = phdr.getOffset()
-        size   = phdr.getFilesz()
-        vaddr  = phdr.getVaddr()
+        size   = phdr.physical_size
+        vaddr  = phdr.virtual_address
         debug('Loading 0x%06x - 0x%06x' %(vaddr, vaddr+size))
-        setConcreteMemoryAreaValue(vaddr, raw[offset:offset+size])
-    return
+        Triton.setConcreteMemoryAreaValue(vaddr, phdr.content)
+    return binary
 
 
 def makeRelocation(binary):
@@ -403,15 +402,13 @@ def makeRelocation(binary):
         customRelocation[pltIndex][2] = BASE_PLT + pltIndex
 
     # Perform our own relocations
-    symbols = binary.getSymbolsTable()
-    relocations = binary.getRelocationTable()
-    for rel in relocations:
-        symbolName = symbols[rel.getSymidx()].getName()
-        symbolRelo = rel.getOffset()
+    for rel in binary.pltgot_relocations:
+        symbolName = rel.symbol.name
+        symbolRelo = rel.address
         for crel in customRelocation:
             if symbolName == crel[0]:
                 debug('Hooking %s' %(symbolName))
-                setConcreteMemoryValue(MemoryAccess(symbolRelo, CPUSIZE.QWORD, crel[2]))
+                Triton.setConcreteMemoryValue(MemoryAccess(symbolRelo, CPUSIZE.QWORD), crel[2])
                 break
     return
 
@@ -424,10 +421,10 @@ def debug(s):
 
 if __name__ == '__main__':
     # Set the architecture
-    setArchitecture(ARCH.X86_64)
+    Triton.setArchitecture(ARCH.X86_64)
 
     # Set a symbolic optimization mode
-    enableMode(MODE.ALIGNED_MEMORY, True)
+    Triton.enableMode(MODE.ALIGNED_MEMORY, True)
 
     # AST representation as Python syntax
     #setAstRepresentationMode(AST_REPRESENTATION.PYTHON)
@@ -436,22 +433,19 @@ if __name__ == '__main__':
         debug('Syntax: %s <elf binary> [arg1, arg2, ...]' %(sys.argv[0]))
         sys.exit(1)
 
-    # Parse the binary
-    binary = Elf(sys.argv[1])
-
     # Load the binary
-    loadBinary(binary)
+    binary = loadBinary(sys.argv[1])
 
     # Perform our own relocations
     makeRelocation(binary)
 
     # Define a fake stack
-    setConcreteRegisterValue(Register(REG.RBP, BASE_STACK))
-    setConcreteRegisterValue(Register(REG.RSP, BASE_STACK))
+    Triton.setConcreteRegisterValue(Triton.registers.rbp, BASE_STACK)
+    Triton.setConcreteRegisterValue(Triton.registers.rsp, BASE_STACK)
 
     # Let's emulate the binary from the entry point
     debug('Starting emulation')
-    emulate(binary.getHeader().getEntry())
+    emulate(binary.entrypoint)
     debug('Emulation done')
 
     sys.exit(0)

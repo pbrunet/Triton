@@ -64,7 +64,7 @@
 
 
 import  sys
-from    triton import *
+from    triton import TritonContext, ARCH, Instruction, MemoryAccess, CPUSIZE
 
 
 code = [
@@ -77,21 +77,23 @@ code = [
 
 if __name__ == '__main__':
 
-    # Set the architecture
-    setArchitecture(ARCH.X86_64)
+    Triton = TritonContext()
 
-    for (addr, opcodes) in code:
+    # Set the architecture
+    Triton.setArchitecture(ARCH.X86_64)
+
+    for (addr, opcode) in code:
         # Build an instruction
         inst = Instruction()
 
-        # Setup opcodes
-        inst.setOpcodes(opcodes)
+        # Setup opcode
+        inst.setOpcode(opcode)
 
         # Setup Address
         inst.setAddress(addr)
 
         # Process everything
-        processing(inst)
+        Triton.processing(inst)
 
         # Display instruction
         print inst
@@ -108,29 +110,29 @@ if __name__ == '__main__':
     write = inst.getOperands()[0].getAddress()
     print 'Instruction :', inst.getDisassembly()
     print 'Write at    :', hex(write)
-    print 'Content     :', hex(getConcreteMemoryValue(MemoryAccess(write+4, CPUSIZE.DWORD)))
-    print 'RAX value   :', hex(getConcreteRegisterValue(REG.RAX))
-    print 'RSI value   :', hex(getConcreteRegisterValue(REG.RSI))
-    print 'RDI value   :', hex(getConcreteRegisterValue(REG.RDI))
+    print 'Content     :', hex(Triton.getConcreteMemoryValue(MemoryAccess(write+4, CPUSIZE.DWORD)))
+    print 'RAX value   :', hex(Triton.getConcreteRegisterValue(Triton.registers.rax))
+    print 'RSI value   :', hex(Triton.getConcreteRegisterValue(Triton.registers.rsi))
+    print 'RDI value   :', hex(Triton.getConcreteRegisterValue(Triton.registers.rdi))
 
 
     print
     print 'Symbolic registers information'
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    for k, v in getSymbolicRegisters().items():
-        print k, v
+    for k, v in Triton.getSymbolicRegisters().items():
+        print Triton.getRegister(k), v
 
     print
     print 'Symbolic memory information'
     print '~~~~~~~~~~~~~~~~~~~~~~~~~~~'
-    for k, v in getSymbolicMemory().items():
+    for k, v in Triton.getSymbolicMemory().items():
         print hex(k), v
 
     print
     print 'Craft symbolic stuffs'
     print '~~~~~~~~~~~~~~~~~~~~~'
-    ah  = buildSymbolicRegister(REG.AH)
-    mem = buildSymbolicMemory(MemoryAccess(0x11248, 4))
+    ah  = Triton.buildSymbolicRegister(Triton.registers.ah)
+    mem = Triton.buildSymbolicMemory(MemoryAccess(0x11248, 4))
     print 'Memory at 0x11248 :', mem
     print 'Compute memory    :', hex(mem.evaluate())
     print 'Register AH       :', ah

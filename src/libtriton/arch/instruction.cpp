@@ -27,12 +27,12 @@ namespace triton {
       this->tid             = 0;
       this->type            = 0;
 
-      std::memset(this->opcodes, 0x00, sizeof(this->opcodes));
+      std::memset(this->opcode, 0x00, sizeof(this->opcode));
     }
 
 
-    Instruction::Instruction(const triton::uint8* opcodes, triton::uint32 opSize) : Instruction::Instruction() {
-      this->setOpcodes(opcodes, opSize);
+    Instruction::Instruction(const triton::uint8* opcode, triton::uint32 opSize) : Instruction::Instruction() {
+      this->setOpcode(opcode, opSize);
     }
 
 
@@ -56,11 +56,8 @@ namespace triton {
       this->conditionTaken      = other.conditionTaken;
       this->controlFlow         = other.controlFlow;
       this->loadAccess          = other.loadAccess;
-      this->memoryAccess        = other.memoryAccess;
       this->operands            = other.operands;
       this->prefix              = other.prefix;
-      this->readRegisters       = other.readRegisters;
-      this->registerState       = other.registerState;
       this->size                = other.size;
       this->storeAccess         = other.storeAccess;
       this->symbolicExpressions = other.symbolicExpressions;
@@ -69,7 +66,7 @@ namespace triton {
       this->type                = other.type;
       this->writtenRegisters    = other.writtenRegisters;
 
-      std::memcpy(this->opcodes, other.opcodes, sizeof(this->opcodes));
+      std::memcpy(this->opcode, other.opcode, sizeof(this->opcode));
 
       this->disassembly.clear();
       this->disassembly.str(other.disassembly.str());
@@ -106,15 +103,15 @@ namespace triton {
     }
 
 
-    const triton::uint8* Instruction::getOpcodes(void) const {
-      return this->opcodes;
+    const triton::uint8* Instruction::getOpcode(void) const {
+      return this->opcode;
     }
 
 
-    void Instruction::setOpcodes(const triton::uint8* opcodes, triton::uint32 size) {
-      if (size >= sizeof(this->opcodes))
-       throw triton::exceptions::Instruction("Instruction::setOpcodes(): Invalid size (too big).");
-      std::memcpy(this->opcodes, opcodes, size);
+    void Instruction::setOpcode(const triton::uint8* opcode, triton::uint32 size) {
+      if (size >= sizeof(this->opcode))
+       throw triton::exceptions::Instruction("Instruction::setOpcode(): Invalid size (too big).");
+      std::memcpy(this->opcode, opcode, size);
       this->size = size;
     }
 
@@ -134,42 +131,28 @@ namespace triton {
     }
 
 
-    const std::set<std::pair<triton::arch::MemoryAccess, triton::ast::AbstractNode*>>& Instruction::getLoadAccess(void) const {
+    std::set<std::pair<triton::arch::MemoryAccess, triton::ast::AbstractNode*>>& Instruction::getLoadAccess(void) {
       return this->loadAccess;
     }
 
 
-    const std::set<std::pair<triton::arch::MemoryAccess, triton::ast::AbstractNode*>>& Instruction::getStoreAccess(void) const {
+    std::set<std::pair<triton::arch::MemoryAccess, triton::ast::AbstractNode*>>& Instruction::getStoreAccess(void) {
       return this->storeAccess;
     }
 
 
-    const std::set<std::pair<triton::arch::Register, triton::ast::AbstractNode*>>& Instruction::getReadRegisters(void) const {
+    std::set<std::pair<triton::arch::Register, triton::ast::AbstractNode*>>& Instruction::getReadRegisters(void) {
       return this->readRegisters;
     }
 
 
-    const std::set<std::pair<triton::arch::Register, triton::ast::AbstractNode*>>& Instruction::getWrittenRegisters(void) const {
+    std::set<std::pair<triton::arch::Register, triton::ast::AbstractNode*>>& Instruction::getWrittenRegisters(void) {
       return this->writtenRegisters;
     }
 
 
-    const std::set<std::pair<triton::arch::Immediate, triton::ast::AbstractNode*>>& Instruction::getReadImmediates(void) const {
+    std::set<std::pair<triton::arch::Immediate, triton::ast::AbstractNode*>>& Instruction::getReadImmediates(void) {
       return this->readImmediates;
-    }
-
-
-    void Instruction::updateContext(const triton::arch::MemoryAccess& mem) {
-      this->memoryAccess.push_back(mem);
-    }
-
-
-    /* If there is a concrete value recorded, build the appropriate Register. Otherwise, perfrom the analysis on zero. */
-    triton::arch::Register Instruction::getRegisterState(triton::uint32 regId) {
-      triton::arch::Register reg(regId);
-      if (this->registerState.find(regId) != this->registerState.end())
-        reg = this->registerState[regId];
-      return reg;
     }
 
 
@@ -292,11 +275,6 @@ namespace triton {
           break;
         }
       }
-    }
-
-
-    void Instruction::updateContext(const triton::arch::Register& reg) {
-      this->registerState[reg.getId()] = reg;
     }
 
 
@@ -447,8 +425,6 @@ namespace triton {
 
     void Instruction::reset(void) {
       this->partialReset();
-      this->memoryAccess.clear();
-      this->registerState.clear();
     }
 
 
@@ -471,7 +447,7 @@ namespace triton {
       this->symbolicExpressions.clear();
       this->writtenRegisters.clear();
 
-      std::memset(this->opcodes, 0x00, sizeof(this->opcodes));
+      std::memset(this->opcode, 0x00, sizeof(this->opcode));
     }
 
 

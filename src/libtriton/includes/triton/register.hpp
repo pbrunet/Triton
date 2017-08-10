@@ -14,6 +14,7 @@
 #include <triton/bitsVector.hpp>
 #include <triton/cpuSize.hpp>
 #include <triton/operandInterface.hpp>
+#include <triton/registers_e.hpp>
 #include <triton/tritonTypes.hpp>
 
 
@@ -33,72 +34,44 @@ namespace triton {
    *  @{
    */
 
+    //! Used for a Register constructor.
+    class CpuInterface;
+
     /*! \class Register
      *  \brief This class is used when an instruction has a register operand.
      */
     class Register : public BitsVector, public OperandInterface {
-
       protected:
         //! The name of the register.
         std::string name;
 
         //! The id of the register.
-        triton::uint32 id;
+        triton::arch::registers_e id;
 
         //! The parent id of the register.
-        triton::uint32 parent;
+        triton::arch::registers_e parent;
 
-        //! The concrete value (content of the register)
-        triton::uint512 concreteValue;
-
-        //! True if this register contains a concrete value.
-        bool concreteValueDefined;
-
-        //! True if this register is immutable regarding concrete values.
-        bool immutable;
-
-        //! Copies a Register.
+        //! Copy a Register.
         void copy(const Register& other);
-
-        //! Setup everything.
-        void setup(triton::uint32 regId);
-
-        //! Resets information.
-        void clear(void);
 
       public:
         //! Constructor.
         Register();
 
         //! Constructor.
-        Register(triton::uint32 regId);
+        Register(triton::arch::registers_e regId, std::string name, triton::arch::registers_e parent, triton::uint32 high, triton::uint32 low);
 
         //! Constructor.
-        Register(triton::uint32 regId, triton::uint512 concreteValue);
+        Register(const triton::arch::CpuInterface&, triton::arch::registers_e regId);
 
         //! Constructor.
-        Register(triton::uint32 regId, triton::uint512 concreteValue, bool immutable);
-
-        //! Constructor by copy.
         Register(const Register& other);
 
-        //! Copies a Register.
-        void operator=(const Register& other);
-
-        //! Destructor.
-        virtual ~Register();
-
         //! Returns the parent id of the register.
-        Register getParent(void) const;
-
-        //! Returns true if the register is immutable.
-        bool isImmutable(void) const;
+        registers_e getParent(void) const;
 
         //! Returns true if `other` and `self` overlap.
         bool isOverlapWith(const Register& other) const;
-
-        //! Returns true if the register contains a concrete value.
-        bool hasConcreteValue(void) const;
 
         //! Returns the name of the register.
         std::string getName(void) const;
@@ -113,7 +86,7 @@ namespace triton {
         triton::uint32 getBitSize(void) const;
 
         //! Returns the id of the register.
-        triton::uint32 getId(void) const;
+        triton::arch::registers_e getId(void) const;
 
         //! Returns the size (in bytes) of the register.
         triton::uint32 getSize(void) const;
@@ -121,17 +94,14 @@ namespace triton {
         //! Returns the type of the operand (triton::arch::OP_REG).
         triton::uint32 getType(void) const;
 
-        //! Returns the concrete value.
-        triton::uint512 getConcreteValue(void) const;
+        //! Compare two registers specifications
+        bool operator==(const Register& other) const;
 
-        //! Sets the id of the register.
-        void setId(triton::uint32 regId);
+        //! Compare two registers specifications
+        bool operator!=(const Register& other) const;
 
-        //! Sets the parent id of the register.
-        void setParent(triton::uint32 regId);
-
-        //! Sets the concrete value of the register.
-        void setConcreteValue(triton::uint512 concreteValue);
+        //! Copies a Register.
+        void operator=(const Register& other);
     };
 
     //! Displays a Register.
@@ -140,20 +110,8 @@ namespace triton {
     //! Displays a Register.
     std::ostream& operator<<(std::ostream& stream, const Register* reg);
 
-    //! Compares two Register.
-    bool operator==(const Register& reg1, const Register& reg2);
-
-    //! Compares two Register.
-    bool operator!=(const Register& reg1, const Register& reg2);
-
-    //! Compares two Register (needed for std::map)
+    //! Compares two Register
     bool operator<(const Register& reg1, const Register& reg2);
-
-    //! Defines the invalid register constant.
-    const triton::uint32 INVALID_REGISTER_ID = 0;
-
-    //! Defines the immutable register constant.
-    const bool IMMUTABLE_REGISTER = true;
 
   /*! @} End of arch namespace */
   };

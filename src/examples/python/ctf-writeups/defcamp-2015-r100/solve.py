@@ -38,51 +38,55 @@
 ##  [+] Emulation done.
 ##
 
-import sys
-from triton import *
+from triton import ARCH, TritonContext, Instruction, MODE, MemoryAccess, CPUSIZE
 
+import os
+import sys
+
+Triton = TritonContext()
 
 
 # Emulate the CheckSolution() function.
 def emulate(pc):
+    astCtxt = Triton.getAstContext()
     print '[+] Starting emulation.'
     while pc:
-        # Fetch opcodes
-        opcodes = getConcreteMemoryAreaValue(pc, 16)
+        # Fetch opcode
+        opcode = Triton.getConcreteMemoryAreaValue(pc, 16)
 
         # Create the Triton instruction
         instruction = Instruction()
-        instruction.setOpcodes(opcodes)
+        instruction.setOpcode(opcode)
         instruction.setAddress(pc)
 
         # Process
-        processing(instruction)
+        Triton.processing(instruction)
         print instruction
 
         # 40078B: cmp eax, 1
         # eax must be equal to 1 at each round.
         if instruction.getAddress() == 0x40078B:
             # Slice expressions
-            rax   = getSymbolicExpressionFromId(getSymbolicRegisterId(REG.RAX))
-            eax   = ast.extract(31, 0, rax.getAst())
+            rax   = Triton.getSymbolicExpressionFromId(Triton.getSymbolicRegisterId(Triton.registers.rax))
+            eax   = astCtxt.extract(31, 0, rax.getAst())
 
             # Define constraint
-            cstr  = ast.assert_(
-                        ast.land(
-                            getPathConstraintsAst(),
-                            ast.equal(eax, ast.bv(1, 32))
+            cstr  = astCtxt.assert_(
+                        astCtxt.land(
+                            Triton.getPathConstraintsAst(),
+                            astCtxt.equal(eax, astCtxt.bv(1, 32))
                         )
                     )
 
             print '[+] Asking for a model, please wait...'
-            model = getModel(cstr)
+            model = Triton.getModel(cstr)
             for k, v in model.items():
                 value = v.getValue()
-                getSymbolicVariableFromId(k).setConcreteValue(value)
+                Triton.setConcreteSymbolicVariableValue(Triton.getSymbolicVariableFromId(k), value)
                 print '[+] Symbolic variable %02d = %02x (%c)' %(k, value, chr(value))
 
         # Next
-        pc = getConcreteRegisterValue(REG.RIP)
+        pc = Triton.getConcreteRegisterValue(Triton.registers.rip)
 
     print '[+] Emulation done.'
     return
@@ -90,39 +94,38 @@ def emulate(pc):
 
 # Load segments into triton.
 def loadBinary(path):
-    binary = Elf(path)
-    raw    = binary.getRaw()
-    phdrs  = binary.getProgramHeaders()
+    import lief
+    binary = lief.parse(path)
+    phdrs  = binary.segments
     for phdr in phdrs:
-        offset = phdr.getOffset()
-        size   = phdr.getFilesz()
-        vaddr  = phdr.getVaddr()
+        size   = phdr.physical_size
+        vaddr  = phdr.virtual_address
         print '[+] Loading 0x%06x - 0x%06x' %(vaddr, vaddr+size)
-        setConcreteMemoryAreaValue(vaddr, raw[offset:offset+size])
+        Triton.setConcreteMemoryAreaValue(vaddr, phdr.content)
     return
 
 
 if __name__ == '__main__':
     # Define the target architecture
-    setArchitecture(ARCH.X86_64)
+    Triton.setArchitecture(ARCH.X86_64)
 
     # Define symbolic optimizations
-    enableMode(MODE.ALIGNED_MEMORY, True)
-    enableMode(MODE.ONLY_ON_SYMBOLIZED, True)
+    Triton.enableMode(MODE.ALIGNED_MEMORY, True)
+    Triton.enableMode(MODE.ONLY_ON_SYMBOLIZED, True)
 
     # Load the binary
-    loadBinary('./r100.bin')
+    loadBinary(os.path.join(os.path.dirname(__file__), 'r100.bin'))
 
     # Define a fake stack
-    setConcreteRegisterValue(Register(REG.RBP, 0x7fffffff))
-    setConcreteRegisterValue(Register(REG.RSP, 0x6fffffff))
+    Triton.setConcreteRegisterValue(Triton.registers.rbp, 0x7fffffff)
+    Triton.setConcreteRegisterValue(Triton.registers.rsp, 0x6fffffff)
 
     # Define an user input
-    setConcreteRegisterValue(Register(REG.RDI, 0x10000000))
+    Triton.setConcreteRegisterValue(Triton.registers.rdi, 0x10000000)
 
     # Symbolize user inputs (30 bytes)
     for index in range(30):
-        convertMemoryToSymbolicVariable(MemoryAccess(0x10000000+index, CPUSIZE.BYTE))
+        Triton.convertMemoryToSymbolicVariable(MemoryAccess(0x10000000+index, CPUSIZE.BYTE))
 
     # Emulate from the verification function
     emulate(0x4006FD)

@@ -15,11 +15,9 @@ namespace triton {
   namespace arch {
 
     MemoryAccess::MemoryAccess() {
-      this->address              = 0;
-      this->concreteValue        = 0;
-      this->concreteValueDefined = false;
-      this->leaAst               = nullptr;
-      this->pcRelative           = 0;
+      this->address    = 0;
+      this->leaAst     = nullptr;
+      this->pcRelative = 0;
     }
 
 
@@ -40,12 +38,6 @@ namespace triton {
         throw triton::exceptions::MemoryAccess("MemoryAccess::MemoryAccess(): size must be aligned.");
 
       this->setPair(std::make_pair(((size * BYTE_SIZE_BIT) - 1), 0));
-    }
-
-
-    MemoryAccess::MemoryAccess(triton::uint64 address, triton::uint32 size /* bytes */, triton::uint512 concreteValue)
-      : MemoryAccess(address, size) {
-      this->setConcreteValue(concreteValue);
     }
 
 
@@ -80,11 +72,6 @@ namespace triton {
 
     triton::uint32 MemoryAccess::getBitSize(void) const {
       return this->getVectorSize();
-    }
-
-
-    triton::uint512 MemoryAccess::getConcreteValue(void) const {
-      return this->concreteValue;
     }
 
 
@@ -160,22 +147,8 @@ namespace triton {
     }
 
 
-    bool MemoryAccess::hasConcreteValue(void) const {
-      return this->concreteValueDefined;
-    }
-
-
     void MemoryAccess::setAddress(triton::uint64 addr) {
       this->address = addr;
-    }
-
-
-    void MemoryAccess::setConcreteValue(triton::uint512 concreteValue) {
-      if (concreteValue > this->getMaxValue())
-        throw triton::exceptions::MemoryAccess("MemoryAccess::MemoryAccess(): You cannot set this concrete value (too big) to this memory access.");
-
-      this->concreteValue        = concreteValue;
-      this->concreteValueDefined = true;
     }
 
 
@@ -184,27 +157,27 @@ namespace triton {
     }
 
 
-    void MemoryAccess::setSegmentRegister(triton::arch::Register& segment) {
+    void MemoryAccess::setSegmentRegister(const triton::arch::Register& segment) {
       this->segmentReg = segment;
     }
 
 
-    void MemoryAccess::setBaseRegister(triton::arch::Register& base) {
+    void MemoryAccess::setBaseRegister(const triton::arch::Register& base) {
       this->baseReg = base;
     }
 
 
-    void MemoryAccess::setIndexRegister(triton::arch::Register& index) {
+    void MemoryAccess::setIndexRegister(const triton::arch::Register& index) {
       this->indexReg = index;
     }
 
 
-    void MemoryAccess::setDisplacement(triton::arch::Immediate& displacement) {
+    void MemoryAccess::setDisplacement(const triton::arch::Immediate& displacement) {
       this->displacement = displacement;
     }
 
 
-    void MemoryAccess::setScale(triton::arch::Immediate& scale) {
+    void MemoryAccess::setScale(const triton::arch::Immediate& scale) {
       this->scale = scale;
     }
 
@@ -214,23 +187,21 @@ namespace triton {
     }
 
 
-    void MemoryAccess::operator=(const MemoryAccess &other) {
+    void MemoryAccess::operator=(const MemoryAccess& other) {
       BitsVector::operator=(other);
       this->copy(other);
     }
 
 
     void MemoryAccess::copy(const MemoryAccess& other) {
-      this->address              = other.address;
-      this->baseReg              = other.baseReg;
-      this->concreteValue        = other.concreteValue;
-      this->concreteValueDefined = other.concreteValueDefined;
-      this->displacement         = other.displacement;
-      this->indexReg             = other.indexReg;
-      this->leaAst               = other.leaAst;
-      this->pcRelative           = other.pcRelative;
-      this->scale                = other.scale;
-      this->segmentReg           = other.segmentReg;
+      this->address      = other.address;
+      this->baseReg      = other.baseReg;
+      this->displacement = other.displacement;
+      this->indexReg     = other.indexReg;
+      this->leaAst       = other.leaAst;
+      this->pcRelative   = other.pcRelative;
+      this->scale        = other.scale;
+      this->segmentReg   = other.segmentReg;
     }
 
 
@@ -258,10 +229,6 @@ namespace triton {
       if (mem1.getAddress() != mem2.getAddress())
         return false;
       if (mem1.getSize() != mem2.getSize())
-        return false;
-      if (mem1.getConcreteValue() != mem2.getConcreteValue())
-        return false;
-      if (mem1.hasConcreteValue() != mem2.hasConcreteValue())
         return false;
       if (mem1.getConstBaseRegister() != mem2.getConstBaseRegister())
         return false;

@@ -3,62 +3,93 @@
 """Test Semantics."""
 
 import os
-import string
-import sys
 import unittest
 
-from triton import *
+from triton import (TritonContext, ARCH, Instruction, OPCODE, CPUSIZE,
+                    MemoryAccess, MODE)
 
+
+def checkAstIntegrity(instruction):
+    """
+    This function check if all ASTs under an Instruction class are still
+    available.
+    """
+    try:
+        for se in instruction.getSymbolicExpressions():
+            str(se.getAst())
+
+        for x, y in instruction.getLoadAccess():
+            str(y)
+
+        for x, y in instruction.getStoreAccess():
+            str(y)
+
+        for x, y in instruction.getReadRegisters():
+            str(y)
+
+        for x, y in instruction.getWrittenRegisters():
+            str(y)
+
+        for x, y in instruction.getReadImmediates():
+            str(y)
+
+        return True
+
+    except:
+        return False
 
 
 class TestIR(unittest.TestCase):
+
     """Test IR."""
 
     def emulate(self, pc):
         """
-        Emulate every opcodes from pc.
+        Emulate every opcode from pc.
+
         Process instruction until the end
         """
         while pc:
-            # Fetch opcodes
-            opcodes = getConcreteMemoryAreaValue(pc, 16)
+            # Fetch opcode
+            opcode = self.Triton.getConcreteMemoryAreaValue(pc, 16)
 
             # Create the Triton instruction
             instruction = Instruction()
-            instruction.setOpcodes(opcodes)
+            instruction.setOpcode(opcode)
             instruction.setAddress(pc)
 
             # Process
-            self.assertTrue(processing(instruction))
+            self.assertTrue(self.Triton.processing(instruction))
 
             # Next
-            pc = getConcreteRegisterValue(REG.RIP)
+            pc = self.Triton.getConcreteRegisterValue(self.Triton.registers.rip)
 
         return
 
     def load_binary(self, filename):
         """Load in memory every opcode from an elf program."""
-        binary = Elf(filename)
-        raw = binary.getRaw()
-        phdrs = binary.getProgramHeaders()
+        import lief
+        binary = lief.parse(filename)
+        phdrs  = binary.segments
         for phdr in phdrs:
-            offset = phdr.getOffset()
-            size = phdr.getFilesz()
-            vaddr = phdr.getVaddr()
-            setConcreteMemoryAreaValue(vaddr, raw[offset:offset+size])
+            size   = phdr.physical_size
+            vaddr  = phdr.virtual_address
+            print '[+] Loading 0x%06x - 0x%06x' %(vaddr, vaddr+size)
+            self.Triton.setConcreteMemoryAreaValue(vaddr, phdr.content)
 
     def test_ir(self):
         """Load binary, setup environment and emulate the ir test suite."""
+        self.Triton = TritonContext()
         # Set arch
-        setArchitecture(ARCH.X86_64)
+        self.Triton.setArchitecture(ARCH.X86_64)
 
         # Load the binary
         binary_file = os.path.join(os.path.dirname(__file__), "misc", "ir-test-suite.bin")
         self.load_binary(binary_file)
 
         # Define a fake stack
-        setConcreteRegisterValue(Register(REG.RBP, 0x7fffffff))
-        setConcreteRegisterValue(Register(REG.RSP, 0x6fffffff))
+        self.Triton.setConcreteRegisterValue(self.Triton.registers.rbp, 0x7fffffff)
+        self.Triton.setConcreteRegisterValue(self.Triton.registers.rsp, 0x6fffffff)
 
         self.emulate(0x40065c)
         return
@@ -78,19 +109,19 @@ class TestIRQemu(unittest.TestCase):
     # Simulate the __libc_start_main routine
     def __libc_start_main(self):
         # Get arguments
-        main = getConcreteRegisterValue(REG.RDI)
+        main = self.Triton.getConcreteRegisterValue(self.Triton.registers.rdi)
 
         # Push the return value to jump into the main() function
-        concretizeRegister(REG.RSP)
-        setConcreteRegisterValue(Register(REG.RSP, getConcreteRegisterValue(REG.RSP)-CPUSIZE.QWORD))
+        self.Triton.concretizeRegister(self.Triton.registers.rsp)
+        self.Triton.setConcreteRegisterValue(self.Triton.registers.rsp, self.Triton.getConcreteRegisterValue(self.Triton.registers.rsp)-CPUSIZE.QWORD)
 
-        ret2main = MemoryAccess(getConcreteRegisterValue(REG.RSP), CPUSIZE.QWORD, main)
-        concretizeMemory(ret2main)
-        setConcreteMemoryValue(ret2main)
+        ret2main = MemoryAccess(self.Triton.getConcreteRegisterValue(self.Triton.registers.rsp), CPUSIZE.QWORD)
+        self.Triton.concretizeMemory(ret2main)
+        self.Triton.setConcreteMemoryValue(ret2main, main)
 
         # Setup argc / argv
-        concretizeRegister(REG.RDI)
-        concretizeRegister(REG.RSI)
+        self.Triton.concretizeRegister(self.Triton.registers.rdi)
+        self.Triton.concretizeRegister(self.Triton.registers.rsi)
 
         # Setup target argvs
         argvs = list()
@@ -102,11 +133,11 @@ class TestIRQemu(unittest.TestCase):
         index = 0
         for argv in argvs:
             addrs.append(base)
-            setConcreteMemoryAreaValue(base, argv+'\x00')
+            self.Triton.setConcreteMemoryAreaValue(base, argv+'\x00')
 
             # Tainting argvs
             for i in range(len(argv)):
-                taintMemory(base + i)
+                self.Triton.taintMemory(base + i)
 
             base += len(argv)+1
             index += 1
@@ -114,11 +145,11 @@ class TestIRQemu(unittest.TestCase):
         argc = len(argvs)
         argv = base
         for addr in addrs:
-            setConcreteMemoryValue(MemoryAccess(base, CPUSIZE.QWORD, addr))
+            self.Triton.setConcreteMemoryValue(MemoryAccess(base, CPUSIZE.QWORD), addr)
             base += CPUSIZE.QWORD
 
-        setConcreteRegisterValue(Register(REG.RDI, argc))
-        setConcreteRegisterValue(Register(REG.RSI, argv))
+        self.Triton.setConcreteRegisterValue(self.Triton.registers.rdi, argc)
+        self.Triton.setConcreteRegisterValue(self.Triton.registers.rsi, argv)
 
         return 0
 
@@ -128,65 +159,66 @@ class TestIRQemu(unittest.TestCase):
 
     def emulate(self, pc):
         """
-        Emulate every opcodes from pc.
+        Emulate every opcode from pc.
         Process instruction until the end
         """
         while pc:
-            # Fetch opcodes
-            opcodes = getConcreteMemoryAreaValue(pc, 16)
+            # Fetch opcode
+            opcode = self.Triton.getConcreteMemoryAreaValue(pc, 16)
 
             # Create the Triton instruction
             instruction = Instruction()
-            instruction.setOpcodes(opcodes)
+            instruction.setOpcode(opcode)
             instruction.setAddress(pc)
 
             # Process
-            ret = processing(instruction)
+            ret = self.Triton.processing(instruction)
 
             if instruction.getType() == OPCODE.HLT:
                 break
 
             self.assertTrue(ret)
+            self.assertTrue(checkAstIntegrity(instruction))
 
             # Simulate routines
             self.hooking_handler()
 
             # Next
-            pc = getConcreteRegisterValue(REG.RIP)
+            pc = self.Triton.getConcreteRegisterValue(self.Triton.registers.rip)
 
         return
 
     def hooking_handler(self):
-        pc = getConcreteRegisterValue(REG.RIP)
+        pc = self.Triton.getConcreteRegisterValue(self.Triton.registers.rip)
         for rel in self.RELO:
             if rel[2] == pc:
                 # Emulate the routine and the return value
                 ret_value = rel[1]()
-                concretizeRegister(REG.RAX)
-                setConcreteRegisterValue(Register(REG.RAX, ret_value))
+                self.Triton.concretizeRegister(self.Triton.registers.rax)
+                self.Triton.setConcreteRegisterValue(self.Triton.registers.rax, ret_value)
 
                 # Get the return address
-                ret_addr = getConcreteMemoryValue(MemoryAccess(getConcreteRegisterValue(REG.RSP), CPUSIZE.QWORD))
+                ret_addr = self.Triton.getConcreteMemoryValue(MemoryAccess(self.Triton.getConcreteRegisterValue(self.Triton.registers.rsp), CPUSIZE.QWORD))
 
                 # Hijack RIP to skip the call
-                concretizeRegister(REG.RIP)
-                setConcreteRegisterValue(Register(REG.RIP, ret_addr))
+                self.Triton.concretizeRegister(self.Triton.registers.rip)
+                self.Triton.setConcreteRegisterValue(self.Triton.registers.rip, ret_addr)
 
                 # Restore RSP (simulate the ret)
-                concretizeRegister(REG.RSP)
-                setConcreteRegisterValue(Register(REG.RSP, getConcreteRegisterValue(REG.RSP)+CPUSIZE.QWORD))
+                self.Triton.concretizeRegister(self.Triton.registers.rsp)
+                self.Triton.setConcreteRegisterValue(self.Triton.registers.rsp, self.Triton.getConcreteRegisterValue(self.Triton.registers.rsp)+CPUSIZE.QWORD)
         return
 
     def load_binary(self, filename):
         """Load in memory every opcode from an elf program."""
-        binary = Elf(filename)
-        raw = binary.getRaw()
-        phdrs = binary.getProgramHeaders()
+        import lief
+        binary = lief.parse(filename)
+        phdrs  = binary.segments
         for phdr in phdrs:
-            offset = phdr.getOffset()
-            size = phdr.getFilesz()
-            vaddr = phdr.getVaddr()
-            setConcreteMemoryAreaValue(vaddr, raw[offset:offset+size])
+            size   = phdr.physical_size
+            vaddr  = phdr.virtual_address
+            print '[+] Loading 0x%06x - 0x%06x' %(vaddr, vaddr+size)
+            self.Triton.setConcreteMemoryAreaValue(vaddr, phdr.content)
         return binary
 
     def make_relocation(self, binary):
@@ -195,22 +227,21 @@ class TestIRQemu(unittest.TestCase):
             self.RELO[pltIndex][2] = self.BASE_PLT + pltIndex
 
         # Perform our own relocations
-        symbols = binary.getSymbolsTable()
-        relocations = binary.getRelocationTable()
-        for rel in relocations:
-            symbolName = symbols[rel.getSymidx()].getName()
-            symbolRelo = rel.getOffset()
+        for rel in binary.pltgot_relocations:
+            symbolName = rel.symbol.name
+            symbolRelo = rel.address
             for crel in self.RELO:
                 if symbolName == crel[0]:
-                    setConcreteMemoryValue(MemoryAccess(symbolRelo, CPUSIZE.QWORD, crel[2]))
+                    self.Triton.setConcreteMemoryValue(MemoryAccess(symbolRelo, CPUSIZE.QWORD), crel[2])
                     break
         return
 
     def test_ir(self):
         """Load binary, setup environment and emulate the ir test suite."""
+        self.Triton = TritonContext()
         # Set arch
-        setArchitecture(ARCH.X86_64)
-        enableMode(MODE.ONLY_ON_SYMBOLIZED, True)
+        self.Triton.setArchitecture(ARCH.X86_64)
+        self.Triton.enableMode(MODE.ONLY_ON_SYMBOLIZED, True)
 
         # Load the binary
         binary_file = os.path.join(os.path.dirname(__file__), "misc", "qemu", "ir-test-suite-qemu.bin")
@@ -219,9 +250,9 @@ class TestIRQemu(unittest.TestCase):
         self.make_relocation(binary)
 
         # Define a fake stack
-        setConcreteRegisterValue(Register(REG.RBP, 0x7fffffff))
-        setConcreteRegisterValue(Register(REG.RSP, 0x6fffffff))
+        self.Triton.setConcreteRegisterValue(self.Triton.registers.rbp, 0x7fffffff)
+        self.Triton.setConcreteRegisterValue(self.Triton.registers.rsp, 0x6fffffff)
 
-        self.emulate(binary.getHeader().getEntry())
+        self.emulate(binary.entrypoint)
         return
 

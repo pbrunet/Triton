@@ -46,25 +46,26 @@
 ##  B1: SymVar_4 = 65 (e)  |  B2: SymVar_4 = 0 ()
 ##
 
-from triton     import *
-from triton.ast import *
+from triton     import ARCH, CPUSIZE, MemoryAccess, MODE
 from pintool    import *
 
 TAINTING_SIZE = 10
 
+Triton = getTritonContext()
 
 
 def tainting(threadId):
-    rdi = getCurrentRegisterValue(REG.RDI) # argc
-    rsi = getCurrentRegisterValue(REG.RSI) # argv
+    rdi = getCurrentRegisterValue(Triton.registers.rdi) # argc
+    rsi = getCurrentRegisterValue(Triton.registers.rsi) # argv
 
     while rdi > 1:
         argv = getCurrentMemoryValue(rsi + ((rdi-1) * CPUSIZE.QWORD), CPUSIZE.QWORD)
         offset = 0
         while offset != TAINTING_SIZE:
-            taintMemory(argv + offset)
+            Triton.taintMemory(argv + offset)
             concreteValue = getCurrentMemoryValue(argv + offset)
-            convertMemoryToSymbolicVariable(MemoryAccess(argv + offset, CPUSIZE.BYTE, concreteValue))
+            Triton.setConcreteMemoryValue(argv + offset, concreteValue)
+            Triton.convertMemoryToSymbolicVariable(MemoryAccess(argv + offset, CPUSIZE.BYTE))
             offset += 1
         print '[+] %02d bytes tainted from the argv[%d] (%#x) pointer' %(offset, rdi-1, argv)
         rdi -= 1
@@ -73,25 +74,22 @@ def tainting(threadId):
 
 
 def fini():
-    pco = getPathConstraints()
+    pco = Triton.getPathConstraints()
+    astCtxt = Triton.getAstContext()
     for pc in pco:
         if pc.isMultipleBranches():
             b1   =  pc.getBranchConstraints()[0]['constraint']
             b2   =  pc.getBranchConstraints()[1]['constraint']
-            print b1
-            print b2
             seed = list()
 
             # Branch 1
-            models  = getModel(assert_(b1))
+            models  = Triton.getModel(astCtxt.assert_(b1))
             for k, v in models.items():
-                print v
                 seed.append(v)
 
             # Branch 2
-            models  = getModel(assert_(b2))
+            models  = Triton.getModel(astCtxt.assert_(b2))
             for k, v in models.items():
-                print v
                 seed.append(v)
 
             if seed:
@@ -101,13 +99,13 @@ def fini():
 
 if __name__ == '__main__':
     # Define the architecture
-    setArchitecture(ARCH.X86_64)
+    Triton.setArchitecture(ARCH.X86_64)
 
     # Start the symbolic analysis from the 'main' function
     startAnalysisFromSymbol('main')
 
     # Align the memory
-    enableMode(MODE.ALIGNED_MEMORY, True)
+    Triton.enableMode(MODE.ALIGNED_MEMORY, True)
 
     # Only perform the symbolic execution on the target binary
     setupImageWhitelist(['crackme_xor'])
@@ -118,4 +116,3 @@ if __name__ == '__main__':
 
     # Run the instrumentation - Never returns
     runProgram()
-

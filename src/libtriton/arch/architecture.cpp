@@ -50,7 +50,6 @@ namespace triton {
           this->cpu.reset(new(std::nothrow) triton::arch::x86::x8664Cpu(this->callbacks));
           if (this->cpu == nullptr)
             throw triton::exceptions::Architecture("Architecture::setArchitecture(): Not enough memory.");
-          this->cpu->init();
           break;
 
         case triton::arch::ARCH_X86:
@@ -58,7 +57,6 @@ namespace triton {
           this->cpu.reset(new(std::nothrow) triton::arch::x86::x86Cpu(this->callbacks));
           if (this->cpu == nullptr)
             throw triton::exceptions::Architecture("Architecture::setArchitecture(): Not enough memory.");
-          this->cpu->init();
           break;
       }
     }
@@ -78,7 +76,7 @@ namespace triton {
     }
 
 
-    bool Architecture::isFlag(triton::uint32 regId) const {
+    bool Architecture::isFlag(triton::arch::registers_e regId) const {
       if (!this->cpu)
         return false;
       return this->cpu->isFlag(regId);
@@ -90,7 +88,7 @@ namespace triton {
     }
 
 
-    bool Architecture::isRegister(triton::uint32 regId) const {
+    bool Architecture::isRegister(triton::arch::registers_e regId) const {
       if (!this->cpu)
         return false;
       return this->cpu->isRegister(regId);
@@ -102,7 +100,7 @@ namespace triton {
     }
 
 
-    bool Architecture::isRegisterValid(triton::uint32 regId) const {
+    bool Architecture::isRegisterValid(triton::arch::registers_e regId) const {
       if (!this->cpu)
         return false;
       return this->cpu->isRegisterValid(regId);
@@ -135,27 +133,38 @@ namespace triton {
     }
 
 
-    triton::arch::RegisterSpecification Architecture::getRegisterSpecification(triton::uint32 regId) const {
-      triton::arch::RegisterSpecification ret;
-
-      if (this->cpu)
-        ret = this->cpu->getRegisterSpecification(regId);
-
-      return ret;
-    }
-
-
-    std::set<triton::arch::Register*> Architecture::getAllRegisters(void) const {
+    const std::unordered_map<registers_e, const triton::arch::Register>& Architecture::getAllRegisters(void) const {
       if (!this->cpu)
         throw triton::exceptions::Architecture("Architecture::getAllRegisters(): You must define an architecture.");
       return this->cpu->getAllRegisters();
     }
 
 
-    std::set<triton::arch::Register*> Architecture::getParentRegisters(void) const {
+    std::set<const triton::arch::Register*> Architecture::getParentRegisters(void) const {
       if (!this->cpu)
         throw triton::exceptions::Architecture("Architecture::getParentRegisters(): You must define an architecture.");
       return this->cpu->getParentRegisters();
+    }
+
+
+    const triton::arch::Register& Architecture::getRegister(triton::arch::registers_e id) const {
+      if (!this->cpu)
+        throw triton::exceptions::Architecture("Architecture::getRegister(): You must define an architecture.");
+      return this->cpu->getRegister(id);
+    }
+
+
+    const triton::arch::Register& Architecture::getParentRegister(const triton::arch::Register& reg) const {
+      if (!this->cpu)
+        throw triton::exceptions::Architecture("Architecture::getParentRegister(): You must define an architecture.");
+      return this->cpu->getParentRegister(reg);
+    }
+
+
+    const triton::arch::Register& Architecture::getParentRegister(triton::arch::registers_e id) const {
+      if (!this->cpu)
+        throw triton::exceptions::Architecture("Architecture::getParentRegister(): You must define an architecture.");
+      return this->cpu->getParentRegister(id);
     }
 
 
@@ -201,10 +210,10 @@ namespace triton {
     }
 
 
-    void Architecture::setConcreteMemoryValue(const triton::arch::MemoryAccess& mem) {
+    void Architecture::setConcreteMemoryValue(const triton::arch::MemoryAccess& mem, const triton::uint512& value) {
       if (!this->cpu)
         throw triton::exceptions::Architecture("Architecture::setConcreteMemoryValue(): You must define an architecture.");
-      this->cpu->setConcreteMemoryValue(mem);
+      this->cpu->setConcreteMemoryValue(mem, value);
     }
 
 
@@ -222,10 +231,10 @@ namespace triton {
     }
 
 
-    void Architecture::setConcreteRegisterValue(const triton::arch::Register& reg) {
+    void Architecture::setConcreteRegisterValue(const triton::arch::Register& reg, const triton::uint512& value) {
       if (!this->cpu)
         throw triton::exceptions::Architecture("Architecture::setConcreteRegisterValue(): You must define an architecture.");
-      this->cpu->setConcreteRegisterValue(reg);
+      this->cpu->setConcreteRegisterValue(reg, value);
     }
 
 

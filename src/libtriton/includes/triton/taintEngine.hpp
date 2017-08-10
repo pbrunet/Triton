@@ -53,6 +53,14 @@ namespace triton {
           //! Symbolic Engine API
           triton::engines::symbolic::SymbolicEngine* symbolicEngine;
 
+          //! Cpu use for this taint
+          //
+          // note: Not really use for now but will be usefull to have a bits
+          // precision on registers tainting
+          //
+          // FIXME: We should make sure it is the same as the one in symbolicEngine
+          const triton::arch::CpuInterface& cpu;
+
         protected:
           //! Defines if the taint engine is enabled or disabled.
           bool enableFlag;
@@ -61,14 +69,14 @@ namespace triton {
           std::set<triton::uint64> taintedMemory;
 
           //! The set of tainted registers. Currently it is an over approximation of the taint.
-          std::set<triton::arch::Register> taintedRegisters;
+          std::set<triton::arch::registers_e> taintedRegisters;
 
           //! Copies a TaintEngine.
           void copy(const TaintEngine& other);
 
         public:
           //! Constructor.
-          TaintEngine(triton::engines::symbolic::SymbolicEngine* symbolicEngine);
+          TaintEngine(triton::engines::symbolic::SymbolicEngine* symbolicEngine, const triton::arch::CpuInterface& cpu);
 
           //! Constructor by copy.
           TaintEngine(const TaintEngine& copy);
@@ -86,7 +94,7 @@ namespace triton {
           const std::set<triton::uint64>& getTaintedMemory(void) const;
 
           //! Returns the tainted registers.
-          const std::set<triton::arch::Register>& getTaintedRegisters(void) const;
+          std::set<const triton::arch::Register*> getTaintedRegisters(void) const;
 
           //! Returns true if the taint engine is enabled.
           bool isEnabled(void) const;

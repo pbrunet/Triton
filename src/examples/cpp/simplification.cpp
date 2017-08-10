@@ -27,15 +27,15 @@ struct op trace[] = {
 
 
 /* if (bvxor x x) -> (_ bv0 x_size) */
-ast::AbstractNode* xor_simplification(ast::AbstractNode* node) {
+ast::AbstractNode* xor_simplification(API&, ast::AbstractNode* node) {
 
   if (node->getKind() == ast::ZX_NODE) {
-    node = node->getChilds()[1];
+    node = node->getChildren()[1];
   }
 
   if (node->getKind() == ast::BVXOR_NODE) {
-    if (*(node->getChilds()[0]) == *(node->getChilds()[1]))
-      return ast::bv(0, node->getBitvectorSize());
+    if (node->getChildren()[0]->equalTo(node->getChildren()[1]))
+      return node->getContext().bv(0, node->getBitvectorSize());
   }
 
   return node;
@@ -44,24 +44,25 @@ ast::AbstractNode* xor_simplification(ast::AbstractNode* node) {
 
 int main(int ac, const char **av) {
 
+  triton::API api;
   /* Set the arch */
   api.setArchitecture(ARCH_X86_64);
 
   /* Record a simplification callback */
   api.addCallback(xor_simplification);
 
+  /* optional - Update register state */
+  api.setConcreteRegisterValue(api.getRegister(ID_REG_RAX), 12345);
+
   for (unsigned int i = 0; trace[i].inst; i++) {
     /* Build an instruction */
     Instruction inst;
 
-    /* Setup opcodes */
-    inst.setOpcodes(trace[i].inst, trace[i].size);
+    /* Setup opcode */
+    inst.setOpcode(trace[i].inst, trace[i].size);
 
     /* optional - Setup address */
     inst.setAddress(trace[i].addr);
-
-    /* optional - Update register state */
-    inst.updateContext(Register(x86::ID_REG_RAX, 12345));
 
     /* Process everything */
     api.processing(inst);

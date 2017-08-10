@@ -17,7 +17,6 @@
 #include <triton/instruction.hpp>
 #include <triton/memoryAccess.hpp>
 #include <triton/register.hpp>
-#include <triton/registerSpecification.hpp>
 #include <triton/tritonTypes.hpp>
 
 
@@ -64,19 +63,19 @@ namespace triton {
         Architecture(triton::callbacks::Callbacks* callbacks=nullptr);
 
         //! Returns true if the register ID is a flag.
-        bool isFlag(triton::uint32 regId) const;
+        bool isFlag(triton::arch::registers_e regId) const;
 
         //! Returns true if the register is a flag.
         bool isFlag(const triton::arch::Register& reg) const;
 
         //! Returns true if the register ID is a register.
-        bool isRegister(triton::uint32 regId) const;
+        bool isRegister(triton::arch::registers_e regId) const;
 
         //! Returns true if the register is a register.
         bool isRegister(const triton::arch::Register& reg) const;
 
         //! Returns true if the register ID is a register or a flag.
-        bool isRegisterValid(triton::uint32 regId) const;
+        bool isRegisterValid(triton::arch::registers_e regId) const;
 
         //! Returns true if the register is a register or a flag.
         bool isRegisterValid(const triton::arch::Register& reg) const;
@@ -105,14 +104,20 @@ namespace triton {
         //! Clears the architecture states (registers and memory).
         void clearArchitecture(void);
 
-        //! Returns all information about the register.
-        triton::arch::RegisterSpecification getRegisterSpecification(triton::uint32 regId) const;
-
         //! Returns all registers.
-        std::set<triton::arch::Register*> getAllRegisters(void) const;
+        const std::unordered_map<registers_e, const triton::arch::Register>& getAllRegisters(void) const;
 
         //! Returns all parent registers.
-        std::set<triton::arch::Register*> getParentRegisters(void) const;
+        std::set<const triton::arch::Register*> getParentRegisters(void) const;
+
+        //! Returns register from id.
+        const triton::arch::Register& getRegister(triton::arch::registers_e id) const;
+
+        //! Returns parent register from id.
+        const triton::arch::Register& getParentRegister(triton::arch::registers_e id) const;
+
+        //! Returns parent register from register
+        const triton::arch::Register& getParentRegister(const triton::arch::Register& reg) const;
 
         //! Disassembles the instruction according to the architecture.
         void disassembly(triton::arch::Instruction& inst) const;
@@ -135,7 +140,7 @@ namespace triton {
         /*!
          * \brief [**architecture api**] - Sets the concrete value of a memory cell.
          *
-         * \description Note that by setting a concrete value will probably imply a desynchronization
+         * \details Note that by setting a concrete value will probably imply a desynchronization
          * with the symbolic state (if it exists). You should probably use the concretize functions after this.
          */
         void setConcreteMemoryValue(triton::uint64 addr, triton::uint8 value);
@@ -143,15 +148,15 @@ namespace triton {
         /*!
          * \brief [**architecture api**] - Sets the concrete value of memory cells.
          *
-         * \description Note that by setting a concrete value will probably imply a desynchronization
+         * \details Note that by setting a concrete value will probably imply a desynchronization
          * with the symbolic state (if it exists). You should probably use the concretize functions after this.
          */
-        void setConcreteMemoryValue(const triton::arch::MemoryAccess& mem);
+        void setConcreteMemoryValue(const triton::arch::MemoryAccess& mem, const triton::uint512& value);
 
         /*!
          * \brief [**architecture api**] - Sets the concrete value of a memory area.
          *
-         * \description Note that by setting a concrete value will probably imply a desynchronization
+         * \details Note that by setting a concrete value will probably imply a desynchronization
          * with the symbolic state (if it exists). You should probably use the concretize functions after this.
          */
         void setConcreteMemoryAreaValue(triton::uint64 baseAddr, const std::vector<triton::uint8>& values);
@@ -159,7 +164,7 @@ namespace triton {
         /*!
          * \brief [**architecture api**] - Sets the concrete value of a memory area.
          *
-         * \description Note that by setting a concrete value will probably imply a desynchronization
+         * \details Note that by setting a concrete value will probably imply a desynchronization
          * with the symbolic state (if it exists). You should probably use the concretize functions after this.
          */
         void setConcreteMemoryAreaValue(triton::uint64 baseAddr, const triton::uint8* area, triton::usize size);
@@ -167,10 +172,10 @@ namespace triton {
         /*!
          * \brief [**architecture api**] - Sets the concrete value of a register.
          *
-         * \description Note that by setting a concrete value will probably imply a desynchronization
+         * \details Note that by setting a concrete value will probably imply a desynchronization
          * with the symbolic state (if it exists). You should probably use the concretize functions after this.
          */
-        void setConcreteRegisterValue(const triton::arch::Register& reg);
+        void setConcreteRegisterValue(const triton::arch::Register& reg, const triton::uint512& value);
 
         //! Returns true if the range `[baseAddr:size]` is mapped into the internal memory representation. \sa getConcreteMemoryValue() and getConcreteMemoryAreaValue().
         bool isMemoryMapped(triton::uint64 baseAddr, triton::usize size=1);

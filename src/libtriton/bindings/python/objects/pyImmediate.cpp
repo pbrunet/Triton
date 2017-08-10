@@ -5,13 +5,25 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/exceptions.hpp>
-#include <triton/immediate.hpp>
 #include <triton/pythonObjects.hpp>
 #include <triton/pythonUtils.hpp>
 #include <triton/pythonXFunctions.hpp>
+#include <triton/exceptions.hpp>
+#include <triton/immediate.hpp>
 
 
+
+/* setup doctest context
+
+>>> from triton import TritonContext, ARCH, Instruction, Immediate, CPUSIZE
+
+>>> ctxt = TritonContext()
+>>> ctxt.setArchitecture(ARCH.X86_64)
+
+>>> inst = Instruction()
+>>> inst.setOpcode("\xB8\x14\x00\x00\x00")
+
+*/
 
 /*! \page py_Immediate_page Immediate
     \brief [**python api**] All information about the Immediate python object.
@@ -26,9 +38,10 @@ This object is used to represent an immediate.
 \subsection py_Immediate_example Example
 
 ~~~~~~~~~~~~~{.py}
->>> processing(inst)
+>>> ctxt.processing(inst)
+True
 >>> print inst
-40000: mov eax, 0x14
+0x0: mov eax, 0x14
 
 >>> op1 = inst.getOperands()[1]
 >>> print op1
@@ -39,6 +52,7 @@ This object is used to represent an immediate.
 
 >>> print op1.getBitSize()
 32
+
 ~~~~~~~~~~~~~
 
 \subsection py_Immediate_constructor Constructor
@@ -48,11 +62,12 @@ This object is used to represent an immediate.
 >>> print imm
 0x1234:16 bv[15..0]
 >>> imm.getValue()
-4660
+4660L
 >>> imm.getSize()
-2
+2L
 >>> imm.getBitSize()
-16
+16L
+
 ~~~~~~~~~~~~~
 
 \section Immediate_py_api Python API - Methods of the Immediate class
@@ -62,7 +77,7 @@ This object is used to represent an immediate.
 Returns the size (in bits) of the immediate.<br>
 e.g: `64`
 
-- <b>\ref py_Bitvector_page getBitvector(void)</b><br>
+- <b>\ref py_BitsVector_page getBitvector(void)</b><br>
 Returns the bitvector.
 
 - <b>integer getSize(void)</b><br>
@@ -96,7 +111,7 @@ namespace triton {
 
       static PyObject* Immediate_getBitvector(PyObject* self, PyObject* noarg) {
         try {
-          return PyBitvector(*PyImmediate_AsImmediate(self));
+          return PyBitsVector(*PyImmediate_AsImmediate(self));
         }
         catch (const triton::exceptions::Exception& e) {
           return PyErr_Format(PyExc_TypeError, "%s", e.what());
@@ -147,7 +162,7 @@ namespace triton {
       static PyObject* Immediate_setValue(PyObject* self, PyObject* value) {
         try {
           if (!PyLong_Check(value) && !PyInt_Check(value))
-            return PyErr_Format(PyExc_TypeError, "setValue(): expected an integer as argument");
+            return PyErr_Format(PyExc_TypeError, "Immediate::setValue(): expected an integer as argument");
           PyImmediate_AsImmediate(self)->setValue(PyLong_AsUint64(value));
           Py_INCREF(Py_None);
           return Py_None;

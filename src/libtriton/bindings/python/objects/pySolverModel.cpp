@@ -5,10 +5,10 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/exceptions.hpp>
 #include <triton/pythonObjects.hpp>
 #include <triton/pythonUtils.hpp>
 #include <triton/pythonXFunctions.hpp>
+#include <triton/exceptions.hpp>
 #include <triton/solverModel.hpp>
 
 
@@ -24,38 +24,41 @@
 This object is used to represent a model from an SMT solver.
 
 ~~~~~~~~~~~~~{.py}
->>> from triton import *
->>> from ast import *
+>>> from triton import TritonContext, ARCH, Instruction, REG
 
->>> setArchitecture(ARCH.X86_64)
+>>> ctxt = TritonContext()
+>>> ctxt.setArchitecture(ARCH.X86_64)
 >>> inst = Instruction()
->>> inst.setOpcodes("\x48\x35\x44\x33\x22\x11") # xor rax, 0x11223344
+>>> inst.setOpcode("\x48\x35\x44\x33\x22\x11") # xor rax, 0x11223344
 
->>> symvar = convertRegisterToSymbolicVariable(REG.RAX)
+>>> symvar = ctxt.convertRegisterToSymbolicVariable(ctxt.registers.rax)
 >>> print symvar
 SymVar_0:64
 
->>> processing(inst)
+>>> ctxt.processing(inst)
+True
 >>> print inst
-0: xor rax, 0x11223344
+0x0: xor rax, 0x11223344
 
->>> raxAst = getFullAstFromId(getSymbolicRegisterId(REG.RAX))
+>>> raxAst = ctxt.getFullAstFromId(ctxt.getSymbolicRegisterId(ctxt.registers.rax))
 >>> print raxAst
-(bvxor ((_ extract 63 0) SymVar_0) (_ bv287454020 64))
+(bvxor SymVar_0 (_ bv287454020 64))
 
->>> constraint = assert_(equal(raxAst, bv(0, raxAst.getBitvectorSize())))
+>>> astCtxt = ctxt.getAstContext()
+>>> constraint = astCtxt.assert_(astCtxt.equal(raxAst, astCtxt.bv(0, raxAst.getBitvectorSize())))
 >>> print constraint
-(assert (= (bvxor ((_ extract 63 0) SymVar_0) (_ bv287454020 64)) (_ bv0 64)))
+(assert (= (bvxor SymVar_0 (_ bv287454020 64)) (_ bv0 64)))
 
->>> model = getModel(constraint)
->>> print model
-{0L: <SolverModel object at 0x7f30ac870b58>}
+>>> model = ctxt.getModel(constraint)
+>>> print model #doctest: +ELLIPSIS
+{0L: <SolverModel object at 0x...>}
 
 >>> symvarModel =  model[symvar.getId()] # Model from the symvar's id
 >>> print symvarModel
-SymVar_0 = 287454020
+SymVar_0 = 0x11223344
 >>> hex(symvarModel.getValue())
 '0x11223344L'
+
 ~~~~~~~~~~~~~
 
 \section SolverModel_py_api Python API - Methods of the SolverModel class

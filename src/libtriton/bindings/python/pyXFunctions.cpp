@@ -5,8 +5,8 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <iostream>
 #include <triton/pythonXFunctions.hpp>
+#include <iostream>
 
 
 
@@ -14,7 +14,7 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      static void notEnoughMemory(void) {
+      static inline void notEnoughMemory(void) {
         std::cerr << "[ERROR] Not enough memory for allocation" << std::endl;
         exit(-1);
       }
@@ -54,8 +54,14 @@ namespace triton {
 
       PyObject* xPyClass_New(PyObject* b, PyObject* d, PyObject* n) {
         PyObject* c = PyClass_New(b, d, n);
+
         if (!c)
           notEnoughMemory();
+
+        Py_CLEAR(b);
+        Py_CLEAR(d);
+        Py_CLEAR(n);
+
         return c;
       }
 

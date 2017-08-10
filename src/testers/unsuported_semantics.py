@@ -2,11 +2,13 @@
 # Note: Display the list of unsuported semantics
 
 from operator   import itemgetter
-from triton     import *
-from pintool    import *
+from triton     import ARCH
+from pintool    import getTritonContext, startAnalysisFromEntry, runProgram, insertCall, INSERT_POINT
 
 
 unsuportedSemantics = dict()
+Triton              = getTritonContext()
+
 
 
 def cbefore(instruction):
@@ -21,7 +23,7 @@ def cbefore(instruction):
 
 
 def cafter(instruction):
-    resetEngines()
+    Triton.resetEngines()
     return
 
 
@@ -38,10 +40,9 @@ def cfini():
 
 
 if __name__ == '__main__':
-    setArchitecture(ARCH.X86_64)
+    Triton.setArchitecture(ARCH.X86_64)
     startAnalysisFromEntry()
     insertCall(cbefore, INSERT_POINT.BEFORE)
     insertCall(cafter,  INSERT_POINT.AFTER)
     insertCall(cfini,   INSERT_POINT.FINI)
     runProgram()
-

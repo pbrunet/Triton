@@ -35,7 +35,7 @@
 ##
 
 import  sys
-from    triton import *
+from  triton import TritonContext, ARCH, Instruction, REG, MemoryAccess
 
 
 code = [
@@ -52,28 +52,21 @@ code = [
 
 if __name__ == '__main__':
 
-    #Set the arch
-    setArchitecture(ARCH.X86_64)
+    Triton = TritonContext()
+    Triton.setArchitecture(ARCH.X86_64)
 
-    for (addr, opcodes) in code:
+    for (addr, opcode) in code:
         # Build an instruction
         inst = Instruction()
 
-        # Setup opcodes
-        inst.setOpcodes(opcodes)
+        # Setup opcode
+        inst.setOpcode(opcode)
 
         # Setup Address
         inst.setAddress(addr)
 
-        # optional - Update register state
-        inst.updateContext(Register(REG.RAX,  12345));
-        inst.updateContext(Register(REG.RBX,  67890));
-
-        # optional - Add memory access <addr, size, content>
-        inst.updateContext(MemoryAccess(0x66666666, 8, 0x31003200330034));
-
         # Process everything
-        processing(inst)
+        Triton.processing(inst)
 
         # Display instruction
         print inst
@@ -85,4 +78,3 @@ if __name__ == '__main__':
         print
 
     sys.exit(0)
-

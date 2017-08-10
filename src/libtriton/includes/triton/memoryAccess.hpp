@@ -17,6 +17,7 @@
 #include <triton/tritonTypes.hpp>
 
 
+
 //! The Triton namespace
 namespace triton {
 /*!
@@ -40,12 +41,6 @@ namespace triton {
       protected:
         //! The memory' address.
         triton::uint64 address;
-
-        //! The concrete value (content of the access)
-        triton::uint512 concreteValue;
-
-        //! True if this memory contains a concrete value.
-        bool concreteValueDefined;
 
         //! Contains the pc relative if it exists.
         triton::uint64 pcRelative;
@@ -78,9 +73,6 @@ namespace triton {
         //! Constructor.
         MemoryAccess(triton::uint64 address, triton::uint32 size /* bytes */);
 
-        //! Constructor.
-        MemoryAccess(triton::uint64 address, triton::uint32 size /* bytes */, triton::uint512 concreteValue);
-
         //! Constructor by copy.
         MemoryAccess(const MemoryAccess& other);
 
@@ -101,9 +93,6 @@ namespace triton {
 
         //! Returns the size (in bits) of the memory vector.
         triton::uint32 getBitSize(void) const;
-
-        //! Returnts the concrete value (content of the access)
-        triton::uint512 getConcreteValue(void) const;
 
         //! LEA - Gets pc relative.
         triton::uint64 getPcRelative(void) const;
@@ -147,39 +136,33 @@ namespace triton {
         //! Returns true if `other` and `self` overlap.
         bool isOverlapWith(const MemoryAccess& other) const;
 
-        //! Returns true if the memory contains a concrete value.
-        bool hasConcreteValue(void) const;
-
         //! Sets the address of the memory access.
         void setAddress(triton::uint64 addr);
-
-        //! Sets the concrete value of the memory access.
-        void setConcreteValue(triton::uint512 concreteValue);
 
         //! LEA - Sets pc relative.
         void setPcRelative(triton::uint64 addr);
 
         //! LEA - Sets the segment register operand.
-        void setSegmentRegister(triton::arch::Register& segment);
+        void setSegmentRegister(const triton::arch::Register& segment);
 
         //! LEA - Sets the base register operand.
-        void setBaseRegister(triton::arch::Register& base);
+        void setBaseRegister(const triton::arch::Register& base);
 
         //! LEA - Sets the index register operand.
-        void setIndexRegister(triton::arch::Register& index);
+        void setIndexRegister(const triton::arch::Register& index);
 
         //! LEA - Sets the displacement operand.
-        void setDisplacement(triton::arch::Immediate& displacement);
+        void setDisplacement(const triton::arch::Immediate& displacement);
 
         //! LEA - Sets the scale operand.
-        void setScale(triton::arch::Immediate& scale);
+        void setScale(const triton::arch::Immediate& scale);
 
         //! Sets the AST of the memory access (LEA).
         void setLeaAst(triton::ast::AbstractNode* ast);
 
         //! Copies a MemoryAccess.
         void operator=(const MemoryAccess& other);
-   };
+    };
 
     //! Displays an MemoryAccess.
     std::ostream& operator<<(std::ostream& stream, const MemoryAccess& mem);

@@ -9,22 +9,13 @@
 #ifndef TRITON_PYOBJECT_H
 #define TRITON_PYOBJECT_H
 
+#include <triton/pythonBindings.hpp>
 #include <triton/ast.hpp>
 #include <triton/bitsVector.hpp>
-#include <triton/elf.hpp>
-#include <triton/elfDynamicTable.hpp>
-#include <triton/elfHeader.hpp>
-#include <triton/elfProgramHeader.hpp>
-#include <triton/elfRelocationTable.hpp>
-#include <triton/elfSectionHeader.hpp>
-#include <triton/elfSymbolTable.hpp>
-#include <triton/pe.hpp>
-#include <triton/peHeader.hpp>
 #include <triton/immediate.hpp>
 #include <triton/instruction.hpp>
 #include <triton/memoryAccess.hpp>
 #include <triton/pathConstraint.hpp>
-#include <triton/pythonBindings.hpp>
 #include <triton/register.hpp>
 #include <triton/solverModel.hpp>
 #include <triton/symbolicExpression.hpp>
@@ -38,6 +29,8 @@ namespace triton {
  *  \addtogroup triton
  *  @{
  */
+
+  class API;
 
   //! The Bindings namespace
   namespace bindings {
@@ -58,59 +51,8 @@ namespace triton {
       //! Creates the AstNode python class.
       PyObject* PyAstNode(triton::ast::AbstractNode* node);
 
-      //! Creates the Bitvector python class.
-      PyObject* PyBitvector(const triton::arch::Immediate& imm);
-
-      //! Creates the Bitvector python class.
-      PyObject* PyBitvector(const triton::arch::MemoryAccess& mem);
-
-      //! Creates the Bitvector python class.
-      PyObject* PyBitvector(const triton::arch::Register& reg);
-
-      //! Creates the Bitvector python class.
-      PyObject* PyBitvector(triton::uint32 high, triton::uint32 low);
-
-      //! Creates the Elf python class.
-      PyObject* PyElf(const std::string& elf);
-
-      //! Creates the ElfDynamicTable python class.
-      PyObject* PyElfDynamicTable(const triton::format::elf::ElfDynamicTable& dyn);
-
-      //! Creates the ElfHeader python class.
-      PyObject* PyElfHeader(const triton::format::elf::ElfHeader& header);
-
-      //! Creates the ElfProgramHeader python class.
-      PyObject* PyElfProgramHeader(const triton::format::elf::ElfProgramHeader& phdr);
-
-      //! Creates the ElfRelocationTable python class.
-      PyObject* PyElfRelocationTable(const triton::format::elf::ElfRelocationTable& rel);
-
-      //! Creates the ElfSectionHeader python class.
-      PyObject* PyElfSectionHeader(const triton::format::elf::ElfSectionHeader& shdr);
-
-      //! Creates the ElfSymbolTable python class.
-      PyObject* PyElfSymbolTable(const triton::format::elf::ElfSymbolTable& sym);
-
-      //! Creates the Pe python class.
-      PyObject* PyPe(const std::string& pe);
-
-      //! Creates the PeHeader python class.
-      PyObject* PyPeHeader(const triton::format::pe::PeHeader& header);
-
-      //! Creates the PeSectionHeader python class.
-      PyObject* PyPeSectionHeader(const triton::format::pe::PeSectionHeader& shdr);
-
-      //! Creates the PeImportTable python class.
-      PyObject* PyPeImportTable(const triton::format::pe::PeImportDirectory& shdr);
-
-      //! Creates the PeImportLookup python class.
-      PyObject* PyPeImportLookup(const triton::format::pe::PeImportLookup& shdr);
-
-      //! Creates the PeExportTable python class.
-      PyObject* PyPeExportTable(const triton::format::pe::PeExportDirectory& shdr);
-
-      //! Creates the PeExportEntry python class.
-      PyObject* PyPeExportEntry(const triton::format::pe::PeExportEntry& shdr);
+      //! Creates the BitsVector python class.
+      template<typename T> PyObject* PyBitsVector(const T& op);
 
       //! Creates the Immediate python class.
       PyObject* PyImmediate(const triton::arch::Immediate& imm);
@@ -130,14 +72,17 @@ namespace triton {
       //! Creates the PathConstraint python class.
       PyObject* PyPathConstraint(const triton::engines::symbolic::PathConstraint& pc);
 
+      //! Creates the new TritonContext python class.
+      PyObject* PyTritonContext(void);
+
+      //! Creates a TritonContext python class which is a reference to another Context.
+      PyObject* PyTritonContextRef(triton::API& api);
+
+      //! Creates an AstContext python class.
+      PyObject* PyAstContext(triton::ast::AstContext& ctxt);
+
       //! Creates the Register python class.
       PyObject* PyRegister(const triton::arch::Register& reg);
-
-      //! Creates the Register python class.
-      PyObject* PyRegister(const triton::arch::Register& reg, triton::uint512 concreteValue);
-
-      //! Creates the Register python class.
-      PyObject* PyRegister(const triton::arch::Register& reg, triton::uint512 concreteValue, bool isImmutable);
 
       //! Creates the SolverModel python class.
       PyObject* PySolverModel(const triton::engines::solver::SolverModel& model);
@@ -159,171 +104,16 @@ namespace triton {
       //! pyAstNode type.
       extern PyTypeObject AstNode_Type;
 
-      /* Bitvector ====================================================== */
+      /* BitsVector ====================================================== */
 
-      //! pyBitvector object.
+      //! pyBitsVector object.
       typedef struct {
         PyObject_HEAD
-        triton::uint32 low;
-        triton::uint32 high;
-      } Bitvector_Object;
+        triton::arch::BitsVector* bv;
+      } BitsVector_Object;
 
-      //! pyBitvector type.
-      extern PyTypeObject Bitvector_Type;
-
-      /* Elf  =========================================================== */
-
-      //! pyElf object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::elf::Elf* elf;
-      } Elf_Object;
-
-      //! pyElf type.
-      extern PyTypeObject Elf_Type;
-
-      /* ElfDynamicTable  =============================================== */
-
-      //! pyElfDynamicTable object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::elf::ElfDynamicTable* dyn;
-      } ElfDynamicTable_Object;
-
-      //! pyElfDynamicTable type.
-      extern PyTypeObject ElfDynamicTable_Type;
-
-      /* ElfHeader  ===================================================== */
-
-      //! pyElfHeader object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::elf::ElfHeader* header;
-      } ElfHeader_Object;
-
-      //! pyElfHeader type.
-      extern PyTypeObject ElfHeader_Type;
-
-      /* ElfProgramHeader  ============================================== */
-
-      //! pyElfProgramHeader object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::elf::ElfProgramHeader* phdr;
-      } ElfProgramHeader_Object;
-
-      //! pyElfProgramHeader type.
-      extern PyTypeObject ElfProgramHeader_Type;
-
-      /* ElfRelocationTable  =========================================== */
-
-      //! pyElfRelocationTable object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::elf::ElfRelocationTable* rel;
-      } ElfRelocationTable_Object;
-
-      //! pyElfRelocationTable type.
-      extern PyTypeObject ElfRelocationTable_Type;
-
-      /* ElfSectionHeader  ============================================== */
-
-      //! pyElfSectionHeader object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::elf::ElfSectionHeader* shdr;
-      } ElfSectionHeader_Object;
-
-      //! pyElfSectionHeader type.
-      extern PyTypeObject ElfSectionHeader_Type;
-
-      /* ElfSymbolTable  ================================================ */
-
-      //! pyElfSymbolTable object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::elf::ElfSymbolTable* sym;
-      } ElfSymbolTable_Object;
-
-      //! pyElfSymbolTable type.
-      extern PyTypeObject ElfSymbolTable_Type;
-
-      /* Pe   =========================================================== */
-
-      //! pyPe object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::pe::Pe* pe;
-      } Pe_Object;
-
-      //! pyPe type.
-      extern PyTypeObject Pe_Type;
-
-      /* PeHeader   ===================================================== */
-
-      //! pyPeHeader object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::pe::PeHeader* header;
-      } PeHeader_Object;
-
-      //! pyPeHeader type.
-      extern PyTypeObject PeHeader_Type;
-
-      /* PeSectionHeader  ============================================== */
-
-      //! pyPeSectionHeader object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::pe::PeSectionHeader* shdr;
-      } PeSectionHeader_Object;
-
-      //! pyPeSectionHeader type.
-      extern PyTypeObject PeSectionHeader_Type;
-
-      /* PeImportTable    ============================================== */
-
-      //! pyPeImportTable object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::pe::PeImportDirectory* impt;
-      } PeImportTable_Object;
-
-      //! pyPeImportTable type.
-      extern PyTypeObject PeImportTable_Type;
-
-      /* PeImportLookup    ============================================== */
-
-      //! pyPeImportLookup object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::pe::PeImportLookup* impt;
-      } PeImportLookup_Object;
-
-      //! pyPeImportTable type.
-      extern PyTypeObject PeImportLookup_Type;
-
-      /* PeImportTable    ============================================== */
-
-      //! pyPeExportTable object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::pe::PeExportDirectory* expt;
-      } PeExportTable_Object;
-
-      //! pyPeExportTable type.
-      extern PyTypeObject PeExportTable_Type;
-
-      /* PeExportEntry    ============================================== */
-
-      //! pyPeExportEntry object.
-      typedef struct {
-        PyObject_HEAD
-        triton::format::pe::PeExportEntry* impt;
-      } PeExportEntry_Object;
-
-      //! pyPeExportEntry type.
-      extern PyTypeObject PeExportEntry_Type;
+      //! pyBitsVector type.
+      extern PyTypeObject BitsVector_Type;
 
       /* Immediate ====================================================== */
 
@@ -363,7 +153,7 @@ namespace triton {
       //! pyPathConstraint object.
       typedef struct {
         PyObject_HEAD
-        triton::engines::symbolic::PathConstraint* pc;
+        triton::engines::symbolic::PathConstraint* pc; //! Pointer to the cpp path constraints
       } PathConstraint_Object;
 
       //! pyPathConstraint type.
@@ -374,18 +164,41 @@ namespace triton {
       //! pyRegister object.
       typedef struct {
         PyObject_HEAD
-        triton::arch::Register* reg;
+        triton::arch::Register* reg; //! Pointer to the cpp register
       } Register_Object;
 
       //! pyRegister type.
       extern PyTypeObject Register_Type;
+
+      /* TrytonContext ======================================================= */
+
+      //! pyTritonContext object.
+      typedef struct {
+        PyObject_HEAD
+        triton::API* api;   //! Pointer to the cpp triton context
+        PyObject* regAttr;  //! Pointer to the registers attribute
+      } TritonContext_Object;
+
+      //! pyRegister type.
+      extern PyTypeObject TritonContextObject_Type;
+
+      /* AstContext ======================================================= */
+
+      //! pyAstContext object.
+      typedef struct {
+        PyObject_HEAD
+        triton::ast::AstContext* ctxt; //!< Pointer to the cpp ast context
+      } AstContext_Object;
+
+      //! pyRegister type.
+      extern PyTypeObject AstContextObject_Type;
 
       /* SolverModel ==================================================== */
 
       //! pySolverModel object.
       typedef struct {
         PyObject_HEAD
-        triton::engines::solver::SolverModel* model;
+        triton::engines::solver::SolverModel* model; //! Pointer to the cpp solver model
       } SolverModel_Object;
 
       //! pySolverModel type.
@@ -425,13 +238,10 @@ namespace triton {
 #define PyAstNode_AsAstNode(v) (((triton::bindings::python::AstNode_Object*)(v))->node)
 
 /*! Checks if the pyObject is a triton::arch::BitsVector. */
-#define PyBitvector_Check(v)  ((v)->ob_type == &triton::bindings::python::Bitvector_Type)
+#define PyBitsVector_Check(v) ((v)->ob_type == &triton::bindings::python::BitsVector_Type)
 
-/*! Returns the triton::arch::BitsVector::high. */
-#define PyBitvector_AsHigh(v) (((triton::bindings::python::Bitvector_Object*)(v))->high)
-
-/*! Returns the triton::arch::BitsVector::low. */
-#define PyBitvector_AsLow(v)  (((triton::bindings::python::Bitvector_Object*)(v))->low)
+/*! Returns the triton::arch::BitsVector. */
+#define PyBitsVector_AsBitsVector(v) (((triton::bindings::python::BitsVector_Object*)(v))->bv)
 
 /*! Checks if the pyObject is a triton::format::efl::Elf. */
 #define PyElf_Check(v) ((v)->ob_type == &triton::bindings::python::Elf_Type)
@@ -540,6 +350,18 @@ namespace triton {
 
 /*! Returns the triton::engines::symbolic::PathConstraint. */
 #define PyPathConstraint_AsPathConstraint(v) (((triton::bindings::python::PathConstraint_Object*)(v))->pc)
+
+/*! Checks if the pyObject is a triton::arch::TritonContext. */
+#define PyTritonContext_Check(v) ((v)->ob_type == &triton::bindings::python::TritonContext_Type)
+
+/*! Returns the triton::arch::TritonContext. */
+#define PyTritonContext_AsTritonContext(v) (((triton::bindings::python::TritonContext_Object*)(v))->api)
+
+/*! Checks if the pyObject is a triton::arch::AstContext. */
+#define PyAstContext_Check(v) ((v)->ob_type == &triton::bindings::python::AstContext_Type)
+
+/*! Returns the triton::arch::AstContext. */
+#define PyAstContext_AsAstContext(v) (((triton::bindings::python::AstContext_Object*)(v))->ctxt)
 
 /*! Checks if the pyObject is a triton::arch::Register. */
 #define PyRegister_Check(v) ((v)->ob_type == &triton::bindings::python::Register_Type)

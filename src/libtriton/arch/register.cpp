@@ -5,99 +5,50 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/api.hpp>
-#include <triton/exceptions.hpp>
+#include <triton/cpuInterface.hpp>
 #include <triton/register.hpp>
-#include <triton/registerSpecification.hpp>
 
 
 
 namespace triton {
   namespace arch {
 
-    Register::Register() {
-      this->clear();
+    Register::Register()
+      : Register(triton::arch::ID_REG_INVALID, "unknown", triton::arch::ID_REG_INVALID, 0, 0) {
     }
 
 
-    Register::Register(triton::uint32 regId) {
-      if (!triton::api.isArchitectureValid()) {
-        this->clear();
-        return;
-      }
-
-      this->setup(regId);
-      this->immutable            = false;
-      this->concreteValueDefined = false;
+    Register::Register(triton::arch::registers_e regId, std::string name, triton::arch::registers_e parent, triton::uint32 high, triton::uint32 low)
+      : BitsVector(high, low),
+        name(name),
+        id(regId),
+        parent(parent) {
     }
 
 
-    Register::Register(triton::uint32 regId, triton::uint512 concreteValue)
-      : Register(regId, concreteValue, false) {
+    Register::Register(const triton::arch::CpuInterface& cpu, triton::arch::registers_e regId)
+      : Register(
+          (regId == triton::arch::ID_REG_INVALID) ?
+          triton::arch::Register(triton::arch::ID_REG_INVALID, "unknown", triton::arch::ID_REG_INVALID, 0, 0) : cpu.getRegister(regId)
+        ) {
     }
 
 
-    Register::Register(triton::uint32 regId, triton::uint512 concreteValue, bool immutable) {
-      if (!triton::api.isArchitectureValid()) {
-        this->clear();
-        return;
-      }
-
-      this->setup(regId);
-      this->immutable = false;
-      this->setConcreteValue(concreteValue);
-      this->immutable = immutable;
-    }
-
-
-    Register::Register(const Register& other) : BitsVector(other) {
+    Register::Register(const Register& other)
+      : BitsVector(other) {
       this->copy(other);
-    }
-
-
-    Register::~Register() {
-    }
-
-
-    void Register::operator=(const Register& other) {
-      BitsVector::operator=(other);
-      this->copy(other);
-    }
-
-
-    void Register::clear(void) {
-      this->concreteValue        = 0;
-      this->concreteValueDefined = false;
-      this->id                   = triton::arch::INVALID_REGISTER_ID;
-      this->immutable            = false;
-      this->name                 = "unknown";
-      this->parent               = triton::arch::INVALID_REGISTER_ID;
-    }
-
-
-    void Register::setup(triton::uint32 regId) {
-      triton::arch::RegisterSpecification regInfo;
-
-      this->id = regId;
-      if (!triton::api.isRegisterValid(regId))
-        this->id = triton::arch::INVALID_REGISTER_ID;
-
-      regInfo      = triton::api.getRegisterSpecification(this->id);
-      this->name   = regInfo.getName();
-      this->parent = regInfo.getParentId();
-
-      this->setHigh(regInfo.getHigh());
-      this->setLow(regInfo.getLow());
     }
 
 
     void Register::copy(const Register& other) {
-      this->concreteValue        = other.concreteValue;
-      this->concreteValueDefined = other.concreteValueDefined;
-      this->id                   = other.id;
-      this->immutable            = false;
-      this->name                 = other.name;
-      this->parent               = other.parent;
+      this->name   = other.name;
+      this->id     = other.id;
+      this->parent = other.parent;
+    }
+
+
+    triton::arch::registers_e Register::getId(void) const {
+      return this->id;
     }
 
 
@@ -111,13 +62,8 @@ namespace triton {
     }
 
 
-    triton::uint32 Register::getId(void) const {
-      return this->id;
-    }
-
-
-    Register Register::getParent(void) const {
-      return Register(this->parent);
+    triton::arch::registers_e Register::getParent(void) const {
+      return this->parent;
     }
 
 
@@ -141,40 +87,8 @@ namespace triton {
     }
 
 
-    triton::uint512 Register::getConcreteValue(void) const {
-      return this->concreteValue;
-    }
-
-
-    void Register::setId(triton::uint32 regId) {
-      this->id = regId;
-    }
-
-
-    void Register::setParent(triton::uint32 regId) {
-      this->parent = regId;
-    }
-
-
-    void Register::setConcreteValue(triton::uint512 concreteValue) {
-      if (concreteValue > this->getMaxValue())
-        throw triton::exceptions::Register("Register::setConcreteValue(): You cannot set this concrete value (too big) to this register.");
-
-      if (this->immutable)
-        return;
-
-      this->concreteValue        = concreteValue;
-      this->concreteValueDefined = true;
-    }
-
-
-    bool Register::isImmutable(void) const {
-      return this->immutable;
-    }
-
-
     bool Register::isOverlapWith(const Register& other) const {
-      if (this->getParent().getId() == other.getParent().getId()) {
+      if (this->parent == other.parent) {
         if (this->getLow() <= other.getLow() && other.getLow() <= this->getHigh()) return true;
         if (other.getLow() <= this->getLow() && this->getLow() <= other.getHigh()) return true;
       }
@@ -182,8 +96,19 @@ namespace triton {
     }
 
 
-    bool Register::hasConcreteValue(void) const {
-      return this->concreteValueDefined;
+    bool Register::operator==(const Register& other) const {
+      return getId() == other.getId();
+    }
+
+
+    bool Register::operator!=(const Register& other) const {
+      return !(*this == other);
+    }
+
+
+    void Register::operator=(const Register& other) {
+      BitsVector::operator=(other);
+      this->copy(other);
     }
 
 
@@ -206,22 +131,8 @@ namespace triton {
     }
 
 
-    bool operator==(const Register& reg1, const Register& reg2) {
-      if (reg1.getId() != reg2.getId())
-        return false;
-      if (reg1.getConcreteValue() != reg2.getConcreteValue())
-        return false;
-      return true;
-    }
-
-
-    bool operator!=(const Register& reg1, const Register& reg2) {
-      return !(reg1 == reg2);
-    }
-
-
     bool operator<(const Register& reg1, const Register& reg2) {
-      return (reg1.getId() < reg2.getId());
+        return (reg1.getId() < reg2.getId());
     }
 
   }; /* arch namespace */

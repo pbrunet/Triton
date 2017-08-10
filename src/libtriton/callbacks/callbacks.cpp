@@ -5,35 +5,21 @@
 **  This program is under the terms of the BSD License.
 */
 
+#include <triton/api.hpp>
 #include <triton/callbacks.hpp>
 #include <triton/exceptions.hpp>
+
 
 
 namespace triton {
   namespace callbacks {
 
-    Callbacks::Callbacks() {
+    Callbacks::Callbacks(triton::API& api) : api(api) {
       this->isDefined = false;
     }
 
 
-    Callbacks::Callbacks(const Callbacks& copy) {
-      this->getConcreteMemoryValueCallbacks     = copy.getConcreteMemoryValueCallbacks;
-      this->getConcreteRegisterValueCallbacks   = copy.getConcreteRegisterValueCallbacks;
-      this->symbolicSimplificationCallbacks     = copy.symbolicSimplificationCallbacks;
-      this->isDefined                           = copy.isDefined;
-    }
-
-
     Callbacks::~Callbacks() {
-    }
-
-
-    void Callbacks::operator=(const Callbacks& copy) {
-      this->getConcreteMemoryValueCallbacks     = copy.getConcreteMemoryValueCallbacks;
-      this->getConcreteRegisterValueCallbacks   = copy.getConcreteRegisterValueCallbacks;
-      this->symbolicSimplificationCallbacks     = copy.symbolicSimplificationCallbacks;
-      this->isDefined                           = copy.isDefined;
     }
 
 
@@ -88,7 +74,7 @@ namespace triton {
       switch (kind) {
         case triton::callbacks::SYMBOLIC_SIMPLIFICATION: {
           for (auto& function: this->symbolicSimplificationCallbacks) {
-            node = function(node);
+            node = function(api, node);
             if (node == nullptr)
               throw triton::exceptions::Callbacks("Callbacks::processCallbacks(SYMBOLIC_SIMPLIFICATION): You cannot return a nullptr node.");
           }
@@ -105,9 +91,9 @@ namespace triton {
     void Callbacks::processCallbacks(triton::callbacks::callback_e kind, const triton::arch::MemoryAccess& mem) const {
       switch (kind) {
         case triton::callbacks::GET_CONCRETE_MEMORY_VALUE: {
-           for(auto& function: this->getConcreteMemoryValueCallbacks) {
+           for (auto& function: this->getConcreteMemoryValueCallbacks) {
              // FIXME Const_cast is certainly bad
-             function(const_cast<triton::arch::MemoryAccess&>(mem));
+             function(api, const_cast<triton::arch::MemoryAccess&>(mem));
            }
           break;
         }
@@ -121,9 +107,9 @@ namespace triton {
     void Callbacks::processCallbacks(triton::callbacks::callback_e kind, const triton::arch::Register& reg) const {
       switch (kind) {
         case triton::callbacks::GET_CONCRETE_REGISTER_VALUE: {
-           for(auto& function: this->getConcreteRegisterValueCallbacks) {
+           for (auto& function: this->getConcreteRegisterValueCallbacks) {
              // FIXME Const_cast is certainly bad
-             function(const_cast<triton::arch::Register&>(reg));
+             function(api, const_cast<triton::arch::Register&>(reg));
            }
           break;
         }

@@ -8,6 +8,7 @@
 #include <triton/exceptions.hpp>
 #include <triton/pathManager.hpp>
 #include <triton/symbolicEnums.hpp>
+#include <triton/astContext.hpp>
 
 
 
@@ -15,14 +16,15 @@ namespace triton {
   namespace engines {
     namespace symbolic {
 
-      PathManager::PathManager(triton::modes::Modes* modes) {
-        if (modes == nullptr)
-          throw triton::exceptions::PathManager("PathManager::PathManager(): The modes API cannot be null.");
-        this->modes = modes;
+      PathManager::PathManager(const triton::modes::Modes& modes, triton::ast::AstContext& astCtxt)
+        : modes(modes),
+          astCtxt(astCtxt) {
       }
 
 
-      PathManager::PathManager(const PathManager& copy) {
+      PathManager::PathManager(const PathManager& copy)
+        : modes(copy.modes),
+          astCtxt(copy.astCtxt) {
         this->copy(copy);
       }
 
@@ -32,7 +34,6 @@ namespace triton {
 
 
       void PathManager::copy(const PathManager& other) {
-        this->modes           = other.modes;
         this->pathConstraints = other.pathConstraints;
       }
 
@@ -45,18 +46,20 @@ namespace triton {
 
       /* Returns the logical conjunction AST of path constraint */
       triton::ast::AbstractNode* PathManager::getPathConstraintsAst(void) const {
+        // Every constraint should have the same context otherwise, we can't know
+        // which one to use for the current node computation.
         std::vector<triton::engines::symbolic::PathConstraint>::const_iterator it;
         triton::ast::AbstractNode* node = nullptr;
 
         /* by default PC is T (top) */
-        node = triton::ast::equal(
-                 triton::ast::bvtrue(),
-                 triton::ast::bvtrue()
+        node = this->astCtxt.equal(
+                 this->astCtxt.bvtrue(),
+                 this->astCtxt.bvtrue()
                );
 
         /* Then, we create a conjunction of pc */
         for (it = this->pathConstraints.begin(); it != this->pathConstraints.end(); it++) {
-          node = triton::ast::land(node, it->getTakenPathConstraintAst());
+          node = this->astCtxt.land(node, it->getTakenPathConstraintAst());
         }
 
         return node;
@@ -81,11 +84,11 @@ namespace triton {
           throw triton::exceptions::PathManager("PathManager::addPathConstraint(): The PC node cannot be null.");
 
         /* If PC_TRACKING_SYMBOLIC is enabled, Triton will track path constraints only if they are symbolized. */
-        if (this->modes->isModeEnabled(triton::modes::PC_TRACKING_SYMBOLIC) && !pc->isSymbolized())
+        if (this->modes.isModeEnabled(triton::modes::PC_TRACKING_SYMBOLIC) && !pc->isSymbolized())
           return;
 
         /* If ONLY_ON_TAINTED is enabled and the expression untainted, Triton will skip the storing process. */
-        if (this->modes->isModeEnabled(triton::modes::ONLY_ON_TAINTED) && !expr->isTainted)
+        if (this->modes.isModeEnabled(triton::modes::ONLY_ON_TAINTED) && !expr->isTainted)
           return;
 
         /* Basic block taken */
@@ -97,18 +100,18 @@ namespace triton {
           throw triton::exceptions::PathManager("PathManager::addPathConstraint(): The PC node size cannot be zero.");
 
         if (pc->getKind() == triton::ast::ZX_NODE)
-          pc = pc->getChilds()[1];
+          pc = pc->getChildren()[1];
 
         /* Multiple branches */
         if (pc->getKind() == triton::ast::ITE_NODE) {
-          triton::uint64 bb1 = pc->getChilds()[1]->evaluate().convert_to<triton::uint64>();
-          triton::uint64 bb2 = pc->getChilds()[2]->evaluate().convert_to<triton::uint64>();
+          triton::uint64 bb1 = pc->getChildren()[1]->evaluate().convert_to<triton::uint64>();
+          triton::uint64 bb2 = pc->getChildren()[2]->evaluate().convert_to<triton::uint64>();
 
-          triton::ast::AbstractNode* bb1pc = (bb1 == dstAddr) ? triton::ast::equal(pc, triton::ast::bv(dstAddr, size)) :
-                                                                triton::ast::lnot(triton::ast::equal(pc, triton::ast::bv(dstAddr, size)));
+          triton::ast::AbstractNode* bb1pc = (bb1 == dstAddr) ? this->astCtxt.equal(pc, this->astCtxt.bv(dstAddr, size)) :
+                                                                this->astCtxt.lnot(this->astCtxt.equal(pc, this->astCtxt.bv(dstAddr, size)));
 
-          triton::ast::AbstractNode* bb2pc = (bb2 == dstAddr) ? triton::ast::equal(pc, triton::ast::bv(dstAddr, size)) :
-                                                                triton::ast::lnot(triton::ast::equal(pc, triton::ast::bv(dstAddr, size)));
+          triton::ast::AbstractNode* bb2pc = (bb2 == dstAddr) ? this->astCtxt.equal(pc, this->astCtxt.bv(dstAddr, size)) :
+                                                                this->astCtxt.lnot(this->astCtxt.equal(pc, this->astCtxt.bv(dstAddr, size)));
 
           pco.addBranchConstraint(bb1 == dstAddr, srcAddr, bb1, bb1pc);
           pco.addBranchConstraint(bb2 == dstAddr, srcAddr, bb2, bb2pc);
@@ -118,7 +121,7 @@ namespace triton {
 
         /* Direct branch */
         else {
-          pco.addBranchConstraint(true, srcAddr, dstAddr, triton::ast::equal(pc, triton::ast::bv(dstAddr, size)));
+          pco.addBranchConstraint(true, srcAddr, dstAddr, this->astCtxt.equal(pc, this->astCtxt.bv(dstAddr, size)));
           this->pathConstraints.push_back(pco);
         }
 
@@ -131,6 +134,8 @@ namespace triton {
 
 
       void PathManager::operator=(const PathManager& other) {
+        // We assume astContext didn't change
+        // We assume modes didn't change
         this->copy(other);
       }
 
