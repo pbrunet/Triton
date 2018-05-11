@@ -47,9 +47,9 @@ Returns the size of the symbolic variable.
 - <b>string getComment(void)</b><br>
 Returns the comment (if exists) of the symbolic variable.
 
-- <b>integer getId(void)</b><br>
-Returns the id of the symbolic variable. This id is always unique.<br>
-e.g: `18`
+//- <b>integer getId(void)</b><br>
+//Returns the id of the symbolic variable. This id is always unique.<br>
+//e.g: `18`
 
 - <b>\ref py_SYMEXPR_page getKind(void)</b><br>
 Returns the kind of the symbolic variable.<br>
@@ -103,14 +103,14 @@ namespace triton {
       }
 
 
-      static PyObject* SymbolicVariable_getId(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUsize(PySymbolicVariable_AsSymbolicVariable(self)->getId());
-        }
-        catch (const std::exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
+//      static PyObject* SymbolicVariable_getId(PyObject* self, PyObject* noarg) {
+//        try {
+//          return PyLong_FromUsize(PySymbolicVariable_AsSymbolicVariable(self)->getId());
+//        }
+//        catch (const std::exception& e) {
+//          return PyErr_Format(PyExc_TypeError, "%s", e.what());
+//        }
+//      }
 
 
       static PyObject* SymbolicVariable_getKindValue(PyObject* self, PyObject* noarg) {
@@ -179,7 +179,7 @@ namespace triton {
       PyMethodDef SymbolicVariable_callbacks[] = {
         {"getBitSize",        SymbolicVariable_getBitSize,        METH_NOARGS,    ""},
         {"getComment",        SymbolicVariable_getComment,        METH_NOARGS,    ""},
-        {"getId",             SymbolicVariable_getId,             METH_NOARGS,    ""},
+        //{"getId",             SymbolicVariable_getId,             METH_NOARGS,    ""},
         {"getKind",           SymbolicVariable_getKind,           METH_NOARGS,    ""},
         {"getKindValue",      SymbolicVariable_getKindValue,      METH_NOARGS,    ""},
         {"getName",           SymbolicVariable_getName,           METH_NOARGS,    ""},

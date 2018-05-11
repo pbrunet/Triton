@@ -59,15 +59,9 @@ namespace triton {
           //! The comment of the symbolic value.
           std::string comment;
 
-          //! The symbolic value id. This id is unique.
-          triton::usize id;
-
         public:
           //! Constructor.
-          SymbolicValue(triton::ast::SharedAbstractNode expr, triton::usize id, symkind_e kind, const std::string& comment="");
-
-          //! Returns the symbolic value id.
-          triton::usize getId(void) const;
+          SymbolicValue(triton::ast::SharedAbstractNode expr, symkind_e kind, const std::string& comment="");
 
           //! Returns true if the symbolic value is assigned to a memory. \sa triton::engines::symbolic::symkind_e
           bool isMemory(void) const;

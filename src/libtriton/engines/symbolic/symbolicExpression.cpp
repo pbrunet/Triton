@@ -22,10 +22,16 @@ namespace triton {
     namespace symbolic {
 
       SymbolicExpression::SymbolicExpression(triton::ast::SharedAbstractNode const& node, triton::usize id, symkind_e kind, const std::string& comment)
-        : SymbolicValue(node, id, kind, comment),
+        : SymbolicValue(node, kind, comment),
         originRegister(),
+        id(id),
         isTainted(false)
       {}
+
+
+      triton::usize SymbolicExpression::getId(void) const {
+        return this->id;
+      }
 
 
       std::string SymbolicExpression::getFormattedId(void) const {

@@ -837,28 +837,40 @@ namespace triton {
 
 
       static PyObject* TritonContext_convertMemoryToSymbolicVariable(PyObject* self, PyObject* args) {
-        PyObject* mem           = nullptr;
-        PyObject* comment       = nullptr;
-        std::string ccomment    = "";
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &mem, &comment);
 
         /* Check if the architecture is definied */
         if (PyTritonContext_AsTritonContext(self)->getArchitecture() == triton::arch::ARCH_INVALID)
           return PyErr_Format(PyExc_TypeError, "convertMemoryToSymbolicVariable(): Architecture is not defined.");
 
+        PyObject* mem           = nullptr;
+        PyObject* comment       = nullptr;
+        PyObject* name          = nullptr;
+
+        /* Extract arguments */
+        // FIXME: Do it for others parsetuple
+        // FIXME: Use keyword argument
+        if(!PyArg_ParseTuple(args, "O|OO", &mem, &comment, &name))
+          return PyErr_Format(PyExc_TypeError, "convertMemoryToSymbolicVariable(): Incorrect number of arguments.");
+
         if (mem == nullptr || (!PyMemoryAccess_Check(mem)))
           return PyErr_Format(PyExc_TypeError, "convertMemoryToSymbolicVariable(): Expects a MemoryAccess as first argument.");
 
-        if (comment != nullptr && !PyString_Check(comment))
-          return PyErr_Format(PyExc_TypeError, "convertMemoryToSymbolicVariable(): Expects a sting as second argument.");
-
-        if (comment != nullptr)
+        std::string ccomment    = "";
+        if (comment != nullptr) {
+          if(!PyString_Check(comment))
+            return PyErr_Format(PyExc_TypeError, "convertMemoryToSymbolicVariable(): Expects a string as second argument.");
           ccomment = PyString_AsString(comment);
+        }
+
+        std::string cname    = "";
+        if (name != nullptr) {
+          if(!PyString_Check(name))
+            return PyErr_Format(PyExc_TypeError, "convertMemoryToSymbolicVariable(): Expects a string as third argument.");
+          cname = PyString_AsString(name);
+        }
 
         try {
-          return PySymbolicVariable(PyTritonContext_AsTritonContext(self)->convertMemoryToSymbolicVariable(*PyMemoryAccess_AsMemoryAccess(mem), ccomment));
+          return PySymbolicVariable(PyTritonContext_AsTritonContext(self)->convertMemoryToSymbolicVariable(*PyMemoryAccess_AsMemoryAccess(mem), ccomment, cname));
         }
         catch (const std::exception& e) {
           return PyErr_Format(PyExc_TypeError, "%s", e.what());
@@ -1642,21 +1654,21 @@ namespace triton {
       }
 
 
-      static PyObject* TritonContext_getSymbolicVariableFromId(PyObject* self, PyObject* symVarId) {
-        /* Check if the architecture is definied */
-        if (PyTritonContext_AsTritonContext(self)->getArchitecture() == triton::arch::ARCH_INVALID)
-          return PyErr_Format(PyExc_TypeError, "getSymbolicVariableFromId(): Architecture is not defined.");
-
-        if (!PyLong_Check(symVarId) && !PyInt_Check(symVarId))
-          return PyErr_Format(PyExc_TypeError, "getSymbolicVariableFromId(): Expects an integer as argument.");
-
-        try {
-          return PySymbolicVariable(PyTritonContext_AsTritonContext(self)->getSymbolicVariableFromId(PyLong_AsUsize(symVarId)));
-        }
-        catch (const std::exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
+//      static PyObject* TritonContext_getSymbolicVariableFromId(PyObject* self, PyObject* symVarId) {
+//        /* Check if the architecture is definied */
+//        if (PyTritonContext_AsTritonContext(self)->getArchitecture() == triton::arch::ARCH_INVALID)
+//          return PyErr_Format(PyExc_TypeError, "getSymbolicVariableFromId(): Architecture is not defined.");
+//
+//        if (!PyLong_Check(symVarId) && !PyInt_Check(symVarId))
+//          return PyErr_Format(PyExc_TypeError, "getSymbolicVariableFromId(): Expects an integer as argument.");
+//
+//        try {
+//          return PySymbolicVariable(PyTritonContext_AsTritonContext(self)->getSymbolicVariableFromId(PyLong_AsUsize(symVarId)));
+//        }
+//        catch (const std::exception& e) {
+//          return PyErr_Format(PyExc_TypeError, "%s", e.what());
+//        }
+//      }
 
 
       static PyObject* TritonContext_getSymbolicVariableFromName(PyObject* self, PyObject* symVarName) {
@@ -3015,7 +3027,7 @@ namespace triton {
         {"getSymbolicRegisterId",               (PyCFunction)TritonContext_getSymbolicRegisterId,                  METH_O,             ""},
         {"getSymbolicRegisterValue",            (PyCFunction)TritonContext_getSymbolicRegisterValue,               METH_O,             ""},
         {"getSymbolicRegisters",                (PyCFunction)TritonContext_getSymbolicRegisters,                   METH_NOARGS,        ""},
-        {"getSymbolicVariableFromId",           (PyCFunction)TritonContext_getSymbolicVariableFromId,              METH_O,             ""},
+//        {"getSymbolicVariableFromId",           (PyCFunction)TritonContext_getSymbolicVariableFromId,              METH_O,             ""},
         {"getSymbolicVariableFromName",         (PyCFunction)TritonContext_getSymbolicVariableFromName,            METH_O,             ""},
         {"getSymbolicVariables",                (PyCFunction)TritonContext_getSymbolicVariables,                   METH_NOARGS,        ""},
         {"getTaintedMemory",                    (PyCFunction)TritonContext_getTaintedMemory,                       METH_NOARGS,        ""},

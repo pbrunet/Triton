@@ -53,9 +53,15 @@ namespace triton {
           //! The origin register if `kind` is equal to `triton::engines::symbolic::REG`, `REG_INVALID` otherwise.
           triton::arch::Register originRegister;
 
+          //! The symbolic value id. This id is unique.
+          triton::usize id;
+
         public:
           //! True if the symbolic expression is tainted.
           bool isTainted;
+
+          //! Returns the symbolic value id.
+          triton::usize getId(void) const;
 
           //! Returns the id as string of the symbolic expression according the mode of the AST representation.
           std::string getFormattedId(void) const;

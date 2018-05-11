@@ -165,19 +165,19 @@ namespace triton {
           void removeAlignedMemory(triton::uint64 address, triton::uint32 size);
 
           //! Adds a symbolic variable.
-          SymbolicVariable* newSymbolicVariable(symkind_e kind, triton::uint64 kindValue, triton::uint32 size, const std::string& comment="");
+          SymbolicVariable* newSymbolicVariable(symkind_e kind, triton::uint64 kindValue, triton::uint32 size, const std::string& comment="", const std::string& varName="");
 
           //! Converts a symbolic expression to a symbolic variable. `symVarSize` must be in bits.
           SymbolicVariable* convertExpressionToSymbolicVariable(triton::usize exprId, triton::uint32 symVarSize, const std::string& symVarComment="");
 
           //! Converts a symbolic memory expression to a symbolic variable.
-          SymbolicVariable* convertMemoryToSymbolicVariable(const triton::arch::MemoryAccess& mem, const std::string& symVarComment="");
+          SymbolicVariable* convertMemoryToSymbolicVariable(const triton::arch::MemoryAccess& mem, const std::string& symVarComment="", const std::string& symVarName="");
 
           //! Converts a symbolic register expression to a symbolic variable.
           SymbolicVariable* convertRegisterToSymbolicVariable(const triton::arch::Register& reg, const std::string& symVarComment="");
 
           //! Returns the symbolic variable corresponding to the symbolic variable id.
-          SymbolicVariable* getSymbolicVariableFromId(triton::usize symVarId) const;
+//          SymbolicVariable* getSymbolicVariableFromId(triton::usize symVarId) const;
 
           //! Returns the symbolic variable corresponding to the symbolic variable name.
           SymbolicVariable* getSymbolicVariableFromName(const std::string& symVarName) const;

@@ -278,24 +278,25 @@ namespace triton {
 
 
       /* Returns the symbolic variable otherwise returns nullptr */
-      SymbolicVariable* SymbolicEngine::getSymbolicVariableFromId(triton::usize symVarId) const {
-
-        auto it = this->symbolicVariables.find(symVarId);
-        if (it == this->symbolicVariables.end())
-          throw triton::exceptions::SymbolicEngine("SymbolicEngine::getSymbolicVariableFromId(): Unregistred variable.");
-        return it->second;
-      }
+//      SymbolicVariable* SymbolicEngine::getSymbolicVariableFromId(triton::usize symVarId) const {
+//
+//        auto it = this->symbolicVariables.find(symVarId);
+//        if (it == this->symbolicVariables.end())
+//          throw triton::exceptions::SymbolicEngine("SymbolicEngine::getSymbolicVariableFromId(): Unregistred variable.");
+//        return it->second;
+//      }
 
 
       /* Returns the symbolic variable otherwise returns nullptr */
       SymbolicVariable* SymbolicEngine::getSymbolicVariableFromName(const std::string& symVarName) const {
 
         // Assume variable was created by triton
-        triton::usize id;
-        if(sscanf(symVarName.c_str(), TRITON_SYMVAR_NAME "%zu", &id) == 1) {
-          return getSymbolicVariableFromId(id);
-        }
+        //triton::usize id;
+        //if(sscanf(symVarName.c_str(), TRITON_SYMVAR_NAME "%zu", &id) == 1) {
+        //  return getSymbolicVariableFromId(id);
+        //}
 
+        // FIXME: We have to handle this efficiently
         for (auto& sv: this->symbolicVariables) {
           if (sv.second->getName() == symVarName)
             return sv.second;
@@ -559,14 +560,14 @@ namespace triton {
 
 
       /* The memory size is used to define the symbolic variable's size. */
-      SymbolicVariable* SymbolicEngine::convertMemoryToSymbolicVariable(const triton::arch::MemoryAccess& mem, const std::string& symVarComment) {
+      SymbolicVariable* SymbolicEngine::convertMemoryToSymbolicVariable(const triton::arch::MemoryAccess& mem, const std::string& symVarComment, const std::string& symVarName) {
         SymbolicVariable* symVar        = nullptr;
         triton::uint64 memAddr          = mem.getAddress();
         triton::uint32 symVarSize       = mem.getSize();
         triton::uint512 cv              = this->architecture->getConcreteMemoryValue(mem);
 
         /* First we create a symbolic variable */
-        symVar = this->newSymbolicVariable(triton::engines::symbolic::MEM, memAddr, symVarSize * BYTE_SIZE_BIT, symVarComment);
+        symVar = this->newSymbolicVariable(triton::engines::symbolic::MEM, memAddr, symVarSize * BYTE_SIZE_BIT, symVarComment, symVarName);
 
         /* Create the AST node */
         auto& symVarNode = symVar->getShareAst();
@@ -638,9 +639,12 @@ namespace triton {
 
 
       /* Adds a new symbolic variable */
-      SymbolicVariable* SymbolicEngine::newSymbolicVariable(triton::engines::symbolic::symkind_e kind, triton::uint64 kindValue, triton::uint32 size, const std::string& comment) {
+      SymbolicVariable* SymbolicEngine::newSymbolicVariable(triton::engines::symbolic::symkind_e kind, triton::uint64 kindValue, triton::uint32 size, const std::string& comment, const std::string& varName) {
         triton::usize uniqueId = this->getUniqueSymVarId();
-        SymbolicVariable* symVar = new(std::nothrow) SymbolicVariable(this->astCtxt, kind, kindValue, uniqueId, size, comment);
+        std::string name = varName;
+        if(name.empty())
+          name = "SymVar" + std::to_string(uniqueId);
+        SymbolicVariable* symVar = new(std::nothrow) SymbolicVariable(this->astCtxt, kind, kindValue, name, size, comment);
 
         if (symVar == nullptr)
           throw triton::exceptions::SymbolicEngine("SymbolicEngine::newSymbolicVariable(): Cannot allocate a new symbolic variable");

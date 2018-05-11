@@ -64,7 +64,7 @@ namespace triton {
           SymbolicVariable(triton::AstContext& astCtxt,
                            symkind_e kind,
                            triton::uint64 kindValue,
-                           triton::usize id,
+                           std::string const& varName,
                            triton::uint32 size,
                            const std::string& comment);
 

@@ -18,12 +18,11 @@ namespace triton {
       SymbolicVariable::SymbolicVariable(triton::AstContext& astCtxt,
                                          symkind_e kind,
                                          triton::uint64 kindValue,
-                                         triton::usize id,
+                                         std::string const& name,
                                          triton::uint32 size,
                                          const std::string& comment):
-      SymbolicValue(triton::ast::SharedAbstractNode(astCtxt.variable(TRITON_SYMVAR_NAME + std::to_string(id), size)),
-                    id, kind, comment),
-      name(TRITON_SYMVAR_NAME + std::to_string(id)),
+      SymbolicValue(triton::ast::SharedAbstractNode(astCtxt.variable(name, size)), kind, comment),
+      name(name),
       kindValue(kindValue),
       size(size)
       {

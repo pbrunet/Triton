@@ -558,9 +558,9 @@ namespace triton {
   }
 
 
-  triton::engines::symbolic::SymbolicVariable* API::convertMemoryToSymbolicVariable(const triton::arch::MemoryAccess& mem, const std::string& symVarComment) {
+  triton::engines::symbolic::SymbolicVariable* API::convertMemoryToSymbolicVariable(const triton::arch::MemoryAccess& mem, const std::string& symVarComment, const std::string& symVarName) {
     this->checkSymbolic();
-    return this->symbolic->convertMemoryToSymbolicVariable(mem, symVarComment);
+    return this->symbolic->convertMemoryToSymbolicVariable(mem, symVarComment, symVarName);
   }
 
 
@@ -754,10 +754,10 @@ namespace triton {
   }
 
 
-  triton::engines::symbolic::SymbolicVariable* API::getSymbolicVariableFromId(triton::usize symVarId) const {
-    this->checkSymbolic();
-    return this->symbolic->getSymbolicVariableFromId(symVarId);
-  }
+//  triton::engines::symbolic::SymbolicVariable* API::getSymbolicVariableFromId(triton::usize symVarId) const {
+//    this->checkSymbolic();
+//    return this->symbolic->getSymbolicVariableFromId(symVarId);
+//  }
 
 
   triton::engines::symbolic::SymbolicVariable* API::getSymbolicVariableFromName(const std::string& symVarName) const {

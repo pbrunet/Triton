@@ -19,20 +19,14 @@ namespace triton {
   namespace engines {
     namespace symbolic {
 
-      SymbolicValue::SymbolicValue(triton::ast::SharedAbstractNode node, triton::usize id, symkind_e kind, const std::string& comment):
+      SymbolicValue::SymbolicValue(triton::ast::SharedAbstractNode node, symkind_e kind, const std::string& comment):
         kind(kind),
         ast(std::move(node)),
-        comment(comment),
-        id(id)
+        comment(comment)
         {
           if(ast == nullptr)
             throw triton::exceptions::SymbolicVariable("SymbolicValue(): No AST defined.");
         }
-
-
-      triton::usize SymbolicValue::getId(void) const {
-        return this->id;
-      }
 
       bool SymbolicValue::isRegister(void) const {
         return (this->kind == triton::engines::symbolic::REG);
